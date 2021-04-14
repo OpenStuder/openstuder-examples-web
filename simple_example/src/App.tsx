@@ -36,9 +36,9 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
     super(props);
     this.state={
       connectionState:SIConnectionState.DISCONNECTED,
-      xTenderXTS:{powerId:"xcom.11.3023",value:undefined},
-      varioTrackVT65:{powerId:"xcom.21.11004",value:undefined},
-      bsp:{powerId:"xcom.61.7003",value:undefined},
+      xTenderXTS:{powerId:"xcom.xt1.3023",value:undefined},
+      varioTrackVT65:{powerId:"xcom.vt1.11004",value:undefined},
+      bsp:{powerId:"xcom.bat.7003",value:undefined},
     };
     this.siGatewayClient = new SIGatewayClient();
   }

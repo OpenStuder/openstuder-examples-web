@@ -42,7 +42,7 @@ class HighchartsTimeSeries extends React.Component<Props, {}> {
             },
             yAxis: {
                 min: 0,
-                max: 2.5
+                max: 0.002
             },
             series: [{
                 name: '[kW]',

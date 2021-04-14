@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 import logo from "./OpenStuder.svg";
 
-import {
+import OpenStuder, {
   SIAccessLevel,
   SIConnectionState,
   SIDeviceMessage,
@@ -12,6 +12,9 @@ import {
   SIStatus,
   SISubscriptionsResult
 } from "@marcocrettena/openstuder";
+
+//Retrieve the user's configuration in the package.json file
+const config = require("../package.json").config;
 
 type Device={
   powerId:string,
@@ -43,8 +46,14 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
   public componentDidMount() {
     //Set the callback that the SIGatewayClient will call
     this.siGatewayClient.setCallback(this);
-    //Try to connect with the server
-    this.siGatewayClient.connect("ws://153.109.24.113",1987, "basic", "basic");
+    //Try to connect with the server if the configuration owns a host value
+    if(config.host!==undefined) {
+      this.siGatewayClient.connect(config.host, config.port, config.user, config.password);
+    }
+    //No host value
+    else{
+      throw new Error("No host found, check if \"package.json\" owns a \"config\" object with a \"host\" key");
+    }
   }
 
   public onClick() {

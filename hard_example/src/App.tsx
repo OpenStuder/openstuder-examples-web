@@ -18,10 +18,12 @@ import Devices, {Device, DeviceRender} from "./Devices";
 import DeviceMessagesRender from "./DeviceMessageRender";
 import SystemInfo from "./SystemInfo";
 
-const host:string="ws://153.109.24.113";
-const port:number=1987;
-const user:string="basic";
-const password:string="basic";
+//Retrieve the user's configuration in the package.json file
+const config = require("../package.json").config;
+const host:string=config.host;
+const port:number=config.port;
+const user:string=config.user;
+const password:string=config.password;
 
 enum VIEW{
   SystemInfo,
@@ -116,6 +118,8 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
     this.setState({devices:newDevices});
     let pJSON = JSON.parse(description);
     this.driverId = pJSON.instances[0].id;
+    let powerProperties:string[]=[this.driverId+".vts.11004",this.driverId+".xts.3137",this.driverId+".bat.7002",this.driverId+".bat.7003"];
+    this.siGatewayClient.subscribeToProperties(powerProperties);
   }
 
   onDeviceMessage(message: SIDeviceMessage): void {
@@ -315,9 +319,9 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
   }
 
   public renderSystemInfo(){
-    let batteryDevice = this.state.devices.findDevice(61);
-    let varioTrackDevice = this.state.devices.findDevice(21);
-    let xTenderDevice = this.state.devices.findDevice(11);
+    let batteryDevice = this.state.devices.findDevice("bat");
+    let varioTrackDevice = this.state.devices.findDevice("vts");
+    let xTenderDevice = this.state.devices.findDevice("xts");
     return(
         <SystemInfo  battery={batteryDevice} varioTrack={varioTrackDevice} xTender={xTenderDevice}/>
     );
@@ -332,7 +336,12 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
   }
 
   public renderBattery(){
-    let batteryDevice:Device|undefined=this.state.devices.findDevice(61);
+    let batteryDevice:Device|undefined;
+    this.state.devices.devices.map(device=>{
+      if(device.model==="BSP"){
+        batteryDevice=device;
+      }
+    });
     if(batteryDevice) {
       return (
           <DeviceRender device={batteryDevice} onClick={(id:string)=>this.onClick(id)} onSubmit={(id,value)=>this.onSubmitWrittenTask(id,value)}

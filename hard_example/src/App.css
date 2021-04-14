@@ -8,7 +8,6 @@
 }
 
 .App-header {
-  /*background-color: #282c34;*/
   background-color: #FFFFFF;
   display: flex;
   flex-direction: column;
@@ -89,9 +88,9 @@ table {
 .sidenav a {
   padding: 6px 8px 6px 16px;
   text-decoration: none;
-  font-size: 20px;
   color: #818181;
   display: block;
+  text-align: left;
 }
 
 .sidenav a:hover {
@@ -100,7 +99,6 @@ table {
 
 @media screen and (max-height: 450px) {
   .sidenav {padding-top: 15px;}
-  .sidenav a {font-size: 18px;}
 }
 
 .content{
@@ -111,4 +109,48 @@ table {
 
 .subLink{
   margin-left: 4px;
+  font-size: 10px;
+}
+
+/*holding the dashboard and the text */
+.dashboard {
+  position: relative;
+  text-align: center;
+  color: black;
+  font-size: small;
+}
+
+.XTPower {
+  position: absolute;
+  top: 3.7%;
+  left: 50%;
+  text-align: right;
+}
+
+.VTPower {
+  position: absolute;
+  top: 40.9%;
+  left: 33%;
+  text-align: right;
+}
+
+.BSPPower {
+  position: absolute;
+  top: 76%;
+  left: 50%;
+  text-align: right;
+}
+
+.BSPCharge {
+  position: absolute;
+  top: 81%;
+  left: 50%;
+  text-align: right;
+}
+
+.HousePower {
+  position: absolute;
+  top: 40.9%;
+  left: 65%;
+  text-align: right;
 }

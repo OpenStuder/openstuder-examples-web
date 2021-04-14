@@ -2,8 +2,14 @@
   "name": "hard_example",
   "version": "0.1.0",
   "private": true,
+  "config": {
+    "host": "ws://153.109.24.113",
+    "port": 1987,
+    "user": "basic",
+    "password": "basic"
+  },
   "dependencies": {
-    "@marcocrettena/openstuder": "^0.1.14",
+    "@marcocrettena/openstuder": "^0.1.15",
     "@testing-library/jest-dom": "^5.11.10",
     "@testing-library/react": "^11.2.6",
     "@testing-library/user-event": "^12.8.3",

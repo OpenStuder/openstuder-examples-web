@@ -14,7 +14,17 @@ export type DeviceProperty = {
 export type Device = {
     model: string,
     properties: DeviceProperty[],
-    id: number,
+    id: string,
+}
+
+export function getPropertyValue(device:Device,propertyID:number):any{
+    let valueProperty:any;
+    device.properties.map(property=>{
+        if(property.id===propertyID){
+            valueProperty = property.value;
+        }
+    });
+    return valueProperty;
 }
 
 class Devices{
@@ -59,26 +69,26 @@ class Devices{
         return devices;
     }
 
-    public findDevice(id:number):Device|undefined{
+    public findDevice(id:string):Device|undefined{
         let deviceFound:Device|undefined;
         this.devices.map(device=>{
-           if(id===+device.id){
+           if(id===device.id){
                deviceFound=device;
            }
         });
         return deviceFound;
     }
 
-    public hasDevice(id:number):boolean{
+    public hasDevice(id:string):boolean{
         return this.findDevice(id) !== undefined;
 
     }
 
     public findPropertyFromString(idProperty:string):DeviceProperty|undefined{
         let ids:string[] = (idProperty.split("."));
-        return this.findProperty(+ids[ids.length-2], +ids[ids.length-1]);
+        return this.findProperty(ids[ids.length-2], +ids[ids.length-1]);
     }
-    public findProperty(idDevice:number, idProperty:number):DeviceProperty|undefined{
+    public findProperty(idDevice:string, idProperty:number):DeviceProperty|undefined{
         let device = this.findDevice(idDevice);
         let propertyFound:DeviceProperty|undefined;
         if(device!==undefined){
@@ -91,13 +101,14 @@ class Devices{
         return propertyFound;
     }
 
-    public hasProperty(idDevice:number, idProperty:number):boolean{
+    public hasProperty(idDevice:string, idProperty:number):boolean{
         return this.findProperty(idDevice, idProperty) !== undefined;
     }
 
     public hasPropertyFromString(ids:string):boolean{
         return this.findPropertyFromString(ids) !==undefined;
     }
+
 }
 
 enum typeWidget{

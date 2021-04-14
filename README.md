@@ -19,6 +19,7 @@ The examples can be used by the JavaScript runtime **Node.js**.
 ## simple-example
 
 This example consists on clicking a button to read some properties of the Studer gateway. Starting with this example should permit the understanding of the OpenStuder Web Client.
+You will need to edit the package.json file at the root of the project, it contains the values of the host, port, user and password in the "config" object.
 
 All the code is in the file **simple_example/src/App.tsx**, to run the example do:
 
@@ -42,6 +43,7 @@ All the code is in the file **medium_example/src/App.tsx**, to run the example d
 
 This example proposes a way to register and display all properties of a Studer system and provide for each property a "read" button and an input to write the properties.
 It provides too a schematic with the main information of the system and a record of all devices messages.
+You will need to edit the package.json file at the root of the project, it contains the values of the host, port, user and password in the "config" object.
 
 All the code is in the file **hard_example/src/**, to run the example do:
 

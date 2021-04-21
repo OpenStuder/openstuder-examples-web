@@ -7,18 +7,21 @@
     "port": 1987,
     "user": "basic",
     "password": "basic",
-    "devices": [
+    "properties": [
       {
-        "name": "Demo inverter",
-        "power_id": "demo.inv.3136"
+        "name": "Inverter power",
+        "id": "demo.inv.3136",
+        "unit": "kW"
       },
       {
-        "name": "Demo charger",
-        "power_id": "demo.sol.11004"
+        "name": "Solar charge power",
+        "id": "demo.sol.11004",
+        "unit": "kW"
       },
       {
-        "name": "Demo battery",
-        "power_id": "demo.bat.7003"
+        "name": "Battery power",
+        "id": "demo.bat.7003",
+        "unit": "kW"
       }
     ]
   },

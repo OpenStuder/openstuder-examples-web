@@ -16,15 +16,16 @@ import {
 //Retrieve the user's configuration in the package.json file
 const config = require("../package.json").config;
 
-type Device = {
+type Property = {
     name: string,
-    powerId: string,
+    id: string,
+    unit: string,
     value: string | undefined,
 }
 
 type AppState = {
     connectionState: SIConnectionState;
-    devices: Array<Device>;
+    properties: Array<Property>;
 }
 
 class App extends React.Component<{}, AppState> implements SIGatewayCallback {
@@ -35,10 +36,10 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
         super(props);
         this.state = {
             connectionState: SIConnectionState.DISCONNECTED,
-            devices: Array<Device>(),
+            properties: Array<Property>(),
         };
-        for (let deviceConfig of config.devices) {
-            this.state.devices.push({name: deviceConfig.name, powerId: deviceConfig.power_id, value: undefined})
+        for (let deviceConfig of config.properties) {
+            this.state.properties.push({name: deviceConfig.name, id: deviceConfig.id, unit: deviceConfig.unit, value: undefined})
         }
         this.siGatewayClient = new SIGatewayClient();
     }
@@ -58,7 +59,7 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
 
     public onClick() {
         //When button is pressed : read all wanted properties
-        let propertyIds: string[] = this.state.devices.map((it) => it.powerId);
+        let propertyIds: string[] = this.state.properties.map((it) => it.id);
         this.siGatewayClient.readProperties(propertyIds);
     }
 
@@ -73,12 +74,12 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
                     </h1>
                     <div className="property-list">
                         {
-                            this.state.devices.map(device =>
+                            this.state.properties.map(property =>
                                 <div>
-                                    <div className="label">{device.name} :</div>
+                                    <div className="label">{property.name} :</div>
                                     <div className="field">
-                                        <div className="value">{device.value || '-'}</div>
-                                        <div className="unit">W</div>
+                                        <div className="value">{property.value || '-'}</div>
+                                        <div className="unit">{property.unit}</div>
                                     </div>
                                 </div>
                             )
@@ -116,7 +117,6 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
 
 
     onConnected(accessLevel: SIAccessLevel, gatewayVersion: string): void {
-        this.siGatewayClient.readDatalog("xcom.11.3023", undefined, undefined, 10);
     }
 
     onDatalogPropertiesRead(status: SIStatus, properties: string[]): void {
@@ -163,14 +163,14 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
     }
 
     onPropertiesRead(results: SIPropertyReadResult[]) {
-        const devices = this.state.devices;
+        const properties = this.state.properties;
         results.filter(result => result.status === SIStatus.SUCCESS).forEach(result => {
-            const device = this.state.devices.find(device => device.powerId === result.id)
+            const device = this.state.properties.find(device => device.id === result.id)
             if (device) {
                 device.value = result.value.toFixed(3);
             }
         })
-        this.setState({devices: devices});
+        this.setState({properties: properties});
     }
 }
 

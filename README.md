@@ -19,7 +19,8 @@ The examples can be used by the JavaScript runtime **Node.js**.
 ## simple-example
 
 This example consists on clicking a button to read some properties of the Studer gateway. Starting with this example should permit the understanding of the OpenStuder Web Client.
-You will need to edit the package.json file at the root of the project, it contains the values of the host, port, user and password in the "config" object.
+You will need to edit the `package.json` file at the root of the project, it contains the values of the `host`, `port`, `user` and `password`  in the `config` object. Additionally 
+you can configure the properties that are displayed on the page by modifying the `properties` array in `config`.
 
 All the code is in the file **simple_example/src/App.tsx**, to run the example do:
 

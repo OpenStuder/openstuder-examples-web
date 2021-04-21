@@ -5,8 +5,8 @@
   "config": {
     "host": "ws://localhost",
     "port": 1987,
-    "user": "basic",
-    "password": "basic",
+    "user": null,
+    "password": null,
     "properties": [
       {
         "name": "Inverter power",

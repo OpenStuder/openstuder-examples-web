@@ -27,7 +27,7 @@ div.field {
     display: inline-flex;
     align-items: flex-end;
     overflow: hidden;
-    border: 2px solid rgb(84, 156, 181);
+    border: 1px solid rgb(84, 156, 181);
     border-bottom-right-radius: 25px;
     background-color: rgba(84, 156, 181, 0.2);
 }

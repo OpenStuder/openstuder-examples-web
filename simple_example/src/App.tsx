@@ -1,6 +1,7 @@
 import React from 'react';
 import './App.css';
 import logo from "./OpenStuder.svg";
+import refresh from "./refresh.svg";
 
 import {
   SIAccessLevel,
@@ -67,18 +68,24 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
     if(this.state.connectionState===SIConnectionState.CONNECTED) {
       return (
           <div className="App">
-            <header className="App-header">
               <h1 className="Title">
-                <div><img src={logo} alt="" className="App-logo"/><span className="marge">StuderNext</span>
+                <div><img src={logo} alt="" className="App-logo"/>
                 </div>
               </h1>
-              <button onClick={()=> this.onClick()}>Read Property</button>
+              <div className="property-list">
               {
                 this.state.devices.map(device =>
-                    <p>{device.name} : {device.value}</p>
+                    <div>
+                      <div className="label">{device.name} :</div>
+                      <div className="field">
+                        <div className="value">{device.value || '-'}</div>
+                        <div className="unit">W</div>
+                      </div>
+                    </div>
                 )
               }
-            </header>
+              </div>
+              <button className="read" onClick={()=> this.onClick()}><img src={refresh} height="32" alt="read"/></button>
           </div>
       );
     }
@@ -88,7 +95,7 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
           <div className="App">
             <header className="App-header">
               <h1 className="Title">
-                <div><img src={logo} alt="" className="App-logo"/><span className="marge">StuderNext</span>
+                <div><img src={logo} alt="" className="App-logo"/>
                 </div>
               </h1>
               <p>
@@ -161,7 +168,7 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
     results.filter(result => result.status === SIStatus.SUCCESS).forEach(result => {
       const device = this.state.devices.find(device => device.powerId === result.id)
       if (device) {
-        device.value = result.value;
+        device.value = result.value.toFixed(3);
       }
     })
     this.setState({devices: devices});

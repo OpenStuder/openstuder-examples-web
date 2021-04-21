@@ -2,7 +2,7 @@ import React from 'react';
 import './App.css';
 import logo from "./OpenStuder.svg";
 
-import OpenStuder, {
+import {
   SIAccessLevel,
   SIConnectionState,
   SIDeviceMessage,
@@ -17,15 +17,14 @@ import OpenStuder, {
 const config = require("../package.json").config;
 
 type Device={
+  name: string,
   powerId:string,
   value:string|undefined,
 }
 
 type AppState={
   connectionState:SIConnectionState;
-  xTenderXTS:Device;
-  bsp:Device;
-  varioTrackVT65:Device;
+  devices: Array<Device>;
 }
 
 class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
@@ -36,10 +35,11 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
     super(props);
     this.state={
       connectionState:SIConnectionState.DISCONNECTED,
-      xTenderXTS:{powerId:"xcom.xt1.3023",value:undefined},
-      varioTrackVT65:{powerId:"xcom.vt1.11004",value:undefined},
-      bsp:{powerId:"xcom.bat.7003",value:undefined},
+      devices: Array<Device>(),
     };
+    for (let deviceConfig of config.devices) {
+      this.state.devices.push({name: deviceConfig.name, powerId: deviceConfig.power_id, value: undefined})
+    }
     this.siGatewayClient = new SIGatewayClient();
   }
 
@@ -58,7 +58,7 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
 
   public onClick() {
     //When button is pressed : read all wanted properties
-    let propertyIds:string[] = [this.state.xTenderXTS.powerId, this.state.bsp.powerId, this.state.varioTrackVT65.powerId];
+    let propertyIds:string[] = this.state.devices.map((it) => it.powerId);
     this.siGatewayClient.readProperties(propertyIds);
   }
 
@@ -73,9 +73,11 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
                 </div>
               </h1>
               <button onClick={()=> this.onClick()}>Read Property</button>
-              <p>XTender power : {this.state.xTenderXTS.value}</p>
-              <p>BSP power : {this.state.bsp.value}</p>
-              <p>VarioTrack power : {this.state.varioTrackVT65.value}</p>
+              {
+                this.state.devices.map(device =>
+                    <p>{device.name} : {device.value}</p>
+                )
+              }
             </header>
           </div>
       );
@@ -155,24 +157,14 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
   }
 
   onPropertiesRead(results: SIPropertyReadResult[]) {
-    results.map(property =>{
-      if(property.status===SIStatus.SUCCESS){
-        //Construct Device with the new value
-        let temp: Device = {powerId: property.id, value: property.value};
-        //Select the good Device to change
-        switch (property.id){
-          case this.state.xTenderXTS.powerId:
-            this.setState({xTenderXTS:temp});
-            break;
-          case this.state.bsp.powerId :
-            this.setState({bsp:temp});
-            break;
-          case this.state.varioTrackVT65.powerId :
-            this.setState({varioTrackVT65:temp});
-            break;
-        }
+    const devices = this.state.devices;
+    results.filter(result => result.status === SIStatus.SUCCESS).forEach(result => {
+      const device = this.state.devices.find(device => device.powerId === result.id)
+      if (device) {
+        device.value = result.value;
       }
-    });
+    })
+    this.setState({devices: devices});
   }
 }
 

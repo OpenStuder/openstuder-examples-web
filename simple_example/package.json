@@ -3,10 +3,24 @@
   "version": "0.1.0",
   "private": true,
   "config": {
-    "host": "ws://153.109.24.113",
+    "host": "ws://localhost",
     "port": 1987,
     "user": "basic",
-    "password": "basic"
+    "password": "basic",
+    "devices": [
+      {
+        "name": "Demo inverter",
+        "power_id": "demo.inv.3136"
+      },
+      {
+        "name": "Demo charger",
+        "power_id": "demo.sol.11004"
+      },
+      {
+        "name": "Demo battery",
+        "power_id": "demo.bat.7003"
+      }
+    ]
   },
   "dependencies": {
     "@marcocrettena/openstuder": "^0.1.15",

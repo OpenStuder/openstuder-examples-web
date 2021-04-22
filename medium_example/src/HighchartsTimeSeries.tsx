@@ -1,75 +1,111 @@
 import * as React from 'react';
 import * as Highcharts from 'highcharts';
-import { ChartObject } from 'highcharts';
+import {ChartObject} from 'highcharts';
 
 // noinspection TsLint
 const Boost = require('highcharts/modules/boost');
 Boost(Highcharts); // WebGL-backed rendering (https://www.highcharts.com/blog/tutorials/higcharts-boost-module/)
 
-const slidingTimeWindowSec = 500;
-
-type Data = {
-    readonly timestamp: number,
-    readonly value: number,
+interface HighchartsTimeSeriesProperties {
+    className: string;
+    backgroundColor: string;
+    slidingTimeWindowSec: number
 }
 
-type Props = {
-    readonly dataPoint: Data
-}
+class HighchartsTimeSeries extends React.Component<HighchartsTimeSeriesProperties, {}> {
 
-class HighchartsTimeSeries extends React.Component<Props, {}> {
+    public static defaultProps = {
+        backgroundColor: '#FFFFFF',
+        slidingTimeWindowSec: 600
+    }
 
     private readonly renderToId = 'highcharts-container';
     // @ts-ignore
     private chart: ChartObject;
-    /*
-    constructor(props: Props) {
-        super(props);
-    }
-    */
+
     public componentDidMount() {
         Highcharts.setOptions({
             global: {
                 useUTC: false
+            },
+            chart: {
+                backgroundColor: this.props.backgroundColor
             }
         });
+        const now = Date.now();
         this.chart = Highcharts.chart(this.renderToId, {
             title: {
-                text: 'Total power'
+                text: 'Total power [kW]',
+                style: {
+                    color: 'rgb(84, 156, 181)',
+                    fontWeight: 'bold'
+                }
+            },
+            credits: {
+                enabled: false
             },
             xAxis: {
-                type: 'datetime'
+                type: 'datetime',
+                min: now,
+                max: now + this.props.slidingTimeWindowSec * 1000,
+                lineColor: 'rgb(84, 156, 181)',
+                labels: {
+                    style: {
+                        color: 'rgb(84, 156, 181)'
+                    }
+                }
             },
             yAxis: {
+                title: undefined,
                 min: 0,
-                max: 0.002
+                minRange: 0.01,
+                lineWidth: 1,
+                lineColor: 'rgb(84, 156, 181)',
+                labels: {
+                    style: {
+                        color: 'rgb(84, 156, 181)'
+                    }
+                }
             },
-            series: [{
-                name: '[kW]',
-                data: [this.props.dataPoint]
-            }]
+            legend: {
+                enabled: false
+            },
+            plotOptions: {
+                line: {
+                    marker: {
+                        enabled: false
+                    }
+                }
+            },
+            series: [
+                {
+                    type: 'line',
+                    color: 'rgb(0, 0, 0)',
+                    name: "Total power",
+                    data: []
+                }
+            ]
         });
-        requestAnimationFrame(this.redrawChart);
-    }
-
-    public componentDidUpdate() {
-        const series = this.chart.series[0];
-        const firstPoint = series.data[0];
-        const shouldShift = series.data[0] ? firstPoint.x < Date.now() - slidingTimeWindowSec * 1000 : false;
-        series.addPoint([this.props.dataPoint.timestamp, this.props.dataPoint.value], false, shouldShift, false);
     }
 
     public render() {
         return (
-            <div id={this.renderToId}/>
+            <div className={this.props.className} id={this.renderToId}/>
         );
     }
 
-    private redrawChart = () => {
-        this.chart.redraw(false);
-        requestAnimationFrame(this.redrawChart);
+    public addPoint(value: number) {
+        const now = Date.now();
+        const series = this.chart.series[0];
+        const animate = series.data.length !== 0;
+        const firstPoint = series.data[0];
+        if (firstPoint && now - firstPoint.x > this.props.slidingTimeWindowSec * 1000) {
+            console.log("REMOVE");
+            series.data = series.data.filter(point => now - point.x <= this.props.slidingTimeWindowSec);
+            this.chart.xAxis[0].setExtremes(now - this.props.slidingTimeWindowSec * 1000, now);
+        }
+        series.addPoint([now, value], true, false, animate);
     }
-
 }
 
 export default HighchartsTimeSeries;

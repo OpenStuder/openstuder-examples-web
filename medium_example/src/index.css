@@ -17,6 +17,12 @@ img.logo {
     height: 150px;
 }
 
+div.device-list {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
 div.label {
     margin-top: 24px;
     margin-bottom: 2px;
@@ -89,4 +95,15 @@ button.read:active,
 input[type=submit]:active {
     border: 1px solid rgb(74, 146, 171);
     background-color: rgb(74, 146, 171);
+}
+
+.chart {
+    overflow: hidden;
+    margin: 64px 64px 32px;
+    border: 1px solid rgb(84, 156, 181);
+    border-bottom-right-radius: 32px;
+}
+
+.highcharts-plot {
+    background-color: red;
 }

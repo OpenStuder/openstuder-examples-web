@@ -29,7 +29,7 @@ class Connect extends React.Component<ConnectProperties, ConnectState> {
                 <div className="label">Password:</div>
                 <input type="text" value={this.state.password} onChange={(event => this.setState({password: event.target.value}))} placeholder="no password"/>
                 <br/>
-                <input type="submit" value="connect" form="form" onClick={this.onConnectButtonClicked}/>
+                <input type="submit" value="connect" onClick={this.onConnectButtonClicked}/>
             </div>
         );
     }

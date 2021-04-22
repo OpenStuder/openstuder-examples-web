@@ -1,167 +1,161 @@
-import React from 'react';
-
+import React, {RefObject} from 'react';
 import HighchartsTimeSeries from "./HighchartsTimeSeries";
-
 import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayCallback, SIGatewayClient, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@marcocrettena/openstuder";
 import Connect from "./Connect";
 
-type Device={
-  powerId:string,
-  value:string|undefined,
-}
-
-type Data = {
-  readonly timestamp: number,
-  readonly value: number,
-}
-
-type AppState={
-  connectionState:SIConnectionState;
-  xTenderMC:Device;
-  bsp:Device;
-  varioTrackMC:Device;
-}
-
-class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
-
-  private siGatewayClient:SIGatewayClient;
-
-  constructor(props:any) {
-    super(props);
-    this.state={
-      connectionState:SIConnectionState.DISCONNECTED,
-      xTenderMC:{powerId:"xcom.xts.3023",value:undefined},
-      varioTrackMC:{powerId:"xcom.vts.11004",value:undefined},
-      bsp:{powerId:"xcom.bat.7003",value:undefined},
-    };
-    this.siGatewayClient = new SIGatewayClient();
-  }
-
-  public componentDidMount() {
-    //Set the callback that the SIGatewayClient will call
-    this.siGatewayClient.setCallback(this);
-  }
-
-  public render() {
-      switch (this.state.connectionState) {
-          case SIConnectionState.DISCONNECTED:
-              return (
-                  <Connect onConnect={this.onConnect}/>
-              );
-
-          case SIConnectionState.CONNECTING:
-          case SIConnectionState.AUTHORIZING:
-              return (
-                  <div>
-                      Connecting...
-                  </div>
-              );
-
-          case SIConnectionState.CONNECTED:
-              let totalPower:number=0;
-              if(this.state.xTenderMC.value){
-                  totalPower +=+ this.state.xTenderMC.value;
-              }
-              if(this.state.varioTrackMC.value){
-                  totalPower +=+ this.state.varioTrackMC.value;
-              }
-              if(this.state.bsp.value){
-                  totalPower +=(+this.state.bsp.value)/1000;
-              }
-              let dataPoint:Data = {timestamp:Date.now(), value:totalPower};
-              return (
-                  <div className="App">
-                      <p>XTender power : {this.state.xTenderMC.value}</p>
-                      <p>BSP power : {this.state.bsp.value}</p>
-                      <p>VarioTrack power : {this.state.varioTrackMC.value}</p>
-                      <p>Total power : {totalPower}</p>
-                      <HighchartsTimeSeries dataPoint={dataPoint}/>
-                  </div>
-              );
-      }
-  }
-
-  private onConnect = (host: string, port: number, username: string | undefined, password: string | undefined) => {
-    if (!host.startsWith('ws://')) {
-      host = 'ws://' + host;
+class Device {
+    constructor(name: string, powerId: string, unit: string = '', sumFactor: number = 1.0) {
+        this.name = name
+        this.powerId = powerId
+        this.value = undefined;
+        this.unit = unit;
+        this.sumFactor = sumFactor;
     }
-    this.siGatewayClient.connect(host, port, username, password);
-  }
 
-  onPropertyRead(status: SIStatus, propertyId: string, value?: string): void {
+    public name: string;
+    public powerId: string;
+    public value: number | undefined;
+    public unit: string;
+    public sumFactor: number;
+}
 
-  }
-
-  onConnectionStateChanged(state: SIConnectionState): void {
-    this.setState({connectionState:state});
-  }
-
-
-  onConnected(accessLevel: SIAccessLevel, gatewayVersion: string): void {
-    let propertyIds:string[] = [this.state.xTenderMC.powerId, this.state.bsp.powerId, this.state.varioTrackMC.powerId];
-    this.siGatewayClient.subscribeToProperties(propertyIds);
-  }
-
-  onDatalogPropertiesRead(status: SIStatus, properties: string[]):void {
-  }
-
-  onDatalogRead(status: SIStatus, propertyId: string, count: number, values: string): void {
-  }
-
-  onDescription(status: SIStatus, description: string, id?: string): void {
-  }
-
-  onDeviceMessage(message: SIDeviceMessage): void {
-  }
-
-  onDisconnected(): void {
-  }
-
-  onEnumerated(status: SIStatus, deviceCount: number): void {
-  }
-
-  onError(reason: string): void {
-  }
-
-  onMessageRead(status: SIStatus, count: number, messages: SIDeviceMessage[]): void {
-
-  }
-
-  onPropertySubscribed(status: SIStatus, propertyId: string): void {
-  }
-
-  onPropertiesSubscribed(statuses: SISubscriptionsResult[]) {
-  }
-
-  onPropertyUnsubscribed(status: SIStatus, propertyId: string): void {
-  }
-
-  onPropertiesUnsubscribed(statuses: SISubscriptionsResult[]) {
-  }
-
-  onPropertyUpdated(propertyId: string, value: any): void {
-    //Construct Device with the new value
-    let temp: Device = {powerId: propertyId, value: value};
-    //Select the good Device to change
-    switch (propertyId) {
-      case this.state.xTenderMC.powerId:
-        this.setState({xTenderMC: temp});
-        break;
-      case this.state.bsp.powerId :
-        this.setState({bsp: temp});
-        break;
-      case this.state.varioTrackMC.powerId :
-        this.setState({varioTrackMC: temp});
-        break;
+class AppState {
+    constructor(devices: Array<Device>) {
+        this.connectionState = SIConnectionState.DISCONNECTED;
+        this.devices = devices;
+        this.powerSum = 0;
     }
-  }
 
-  onPropertyWritten(status: SIStatus, propertyId: string): void {
-  }
+    public connectionState: SIConnectionState;
+    public devices: Array<Device>;
+    public powerSum: number;
+}
 
-  onPropertiesRead(results: SIPropertyReadResult[]) {
+class App extends React.Component<{}, AppState> implements SIGatewayCallback {
 
-  }
+    private siGatewayClient: SIGatewayClient;
+    private readonly chart: RefObject<HighchartsTimeSeries>;
+
+    constructor(props: any) {
+        super(props);
+        this.state = new AppState([
+            new Device('Demo inverter', 'demo.inv.3136', 'kW'),
+            new Device('Demo solar charger', 'demo.sol.11004', 'kW', 0),
+            new Device('Demo battery', 'demo.bat.7003', 'W', 0)
+        ]);
+        this.siGatewayClient = new SIGatewayClient();
+        this.chart = React.createRef();
+    }
+
+    public componentDidMount() {
+        // Set the callback that the SIGatewayClient will call
+        this.siGatewayClient.setCallback(this);
+    }
+
+    public render() {
+        switch (this.state.connectionState) {
+            case SIConnectionState.DISCONNECTED:
+                return (
+                    <Connect onConnect={this.onConnect}/>
+                );
+
+            case SIConnectionState.CONNECTING:
+            case SIConnectionState.AUTHORIZING:
+                return (
+                    <div>Connecting...</div>
+                );
+
+            case SIConnectionState.CONNECTED:
+                return (
+                    <div className="App">
+                        <div className="device-list">
+                            {
+                                this.state.devices.map(device =>
+                                    <div>
+                                        <div className="label">{device.name} :</div>
+                                        <div className="field">
+                                            <div className="value">{device.value?.toFixed(3) || '-'}</div>
+                                            <div className="unit">{device.unit}</div>
+                                        </div>
+                                    </div>
+                                )
+                            }
+                            <div>
+                                <div className="label">Total power</div>
+                                <div className="field">
+                                    <div className="value">{this.state.powerSum.toFixed(3)}</div>
+                                    <div className="unit">kW</div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <HighchartsTimeSeries className="chart" backgroundColor="rgba(84, 156, 181, 0.2)" ref={this.chart}/>
+                        <input type="submit" value="disconnect" onClick={this.onDisconnect}/>
+                    </div>
+                );
+        }
+    }
+
+
+    // Event handlers.
+
+    private onConnect = (host: string, port: number, username: string | undefined, password: string | undefined) => {
+        // If the host string is missing the URL scheme, add it.
+        if (!host.startsWith('ws://')) {
+            host = 'ws://' + host;
+        }
+
+        // Connect to the gateway.
+        this.siGatewayClient.connect(host, port, username, password);
+    }
+
+    private onDisconnect = () => {
+        this.siGatewayClient.disconnect();
+    }
+
+
+    // SIGatewayCallback implementation.
+
+    onConnectionStateChanged(state: SIConnectionState): void {
+        this.setState({connectionState: state});
+    }
+
+    onConnected(accessLevel: SIAccessLevel, gatewayVersion: string): void {
+        this.siGatewayClient.subscribeToProperties(this.state.devices.map(device => device.powerId));
+    }
+
+    onPropertyUpdated(propertyId: string, value: any): void {
+        const devices = this.state.devices;
+        const device = this.state.devices.find(device => device.powerId === propertyId)
+        if (device) {
+            device.value = parseFloat(value);
+
+            if (device.sumFactor !== 0) {
+                let powerSum: number = 0;
+                this.state.devices.filter(device => device.sumFactor !== 0).forEach(device => powerSum += device.sumFactor * (device.value || 0))
+                this.setState({devices: devices, powerSum: powerSum});
+                this.chart?.current?.addPoint(powerSum);
+            } else {
+                this.setState({devices: devices});
+            }
+        }
+    }
+
+    onPropertyRead(status: SIStatus, propertyId: string, value?: string): void {}
+    onPropertiesRead(results: SIPropertyReadResult[]) {}
+    onPropertyWritten(status: SIStatus, propertyId: string): void {}
+    onDatalogPropertiesRead(status: SIStatus, properties: string[]): void {}
+    onDatalogRead(status: SIStatus, propertyId: string, count: number, values: string): void {}
+    onDescription(status: SIStatus, description: string, id?: string): void {}
+    onDeviceMessage(message: SIDeviceMessage): void {}
+    onDisconnected(): void {}
+    onEnumerated(status: SIStatus, deviceCount: number): void {}
+    onError(reason: string): void {}
+    onMessageRead(status: SIStatus, count: number, messages: SIDeviceMessage[]): void {}
+    onPropertySubscribed(status: SIStatus, propertyId: string): void {}
+    onPropertiesSubscribed(statuses: SISubscriptionsResult[]) {}
+    onPropertyUnsubscribed(status: SIStatus, propertyId: string): void {}
+    onPropertiesUnsubscribed(statuses: SISubscriptionsResult[]) {}
 }
 
 export default App;

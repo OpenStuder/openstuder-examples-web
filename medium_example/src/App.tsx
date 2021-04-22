@@ -1,5 +1,4 @@
 import React from 'react';
-import './App.css';
 import logo from "./OpenStuder.svg";
 
 import HighchartsTimeSeries from "./HighchartsTimeSeries";
@@ -101,17 +100,11 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
     let dataPoint:Data = {timestamp:Date.now(), value:totalPower};
       return (
           <div className="App">
-            <header className="App-header">
-              <h1 className="Title">
-                <div><img src={logo} alt="" className="App-logo"/><span className="marge">StuderNext</span>
-                </div>
-              </h1>
               <p>XTender power : {this.state.xTenderMC.value}</p>
               <p>BSP power : {this.state.bsp.value}</p>
               <p>VarioTrack power : {this.state.varioTrackMC.value}</p>
               <p>Total power : {totalPower}</p>
               <HighchartsTimeSeries dataPoint={dataPoint}/>
-            </header>
           </div>
       );
   }
@@ -119,15 +112,9 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
     //Display that the client tries to connect
     return(
         <div className="App">
-          <header className="App-header">
-            <h1 className="Title">
-              <div><img src={logo} alt="" className="App-logo"/><span className="marge">StuderNext</span>
-              </div>
-            </h1>
             <p>
               Connecting...
             </p>
-          </header>
         </div>
     );
   }
@@ -135,16 +122,10 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
   public renderDisconnected(){
     return(
         <div className="App">
-          <header className="App-header">
-            <h1 className="Title">
-              <div><img src={logo} alt="" className="App-logo"/><span className="marge">StuderNext</span>
-              </div>
-            </h1>
-          </header>
-          <p>Host:</p><input type="text" name="host" form="form" onChange={(event => this.onChangeHost(event))}/><br/>
-          <p>Port:</p><input type="text" name="port" form="form" onChange={(event => this.onChangePort(event))}/><br/>
-          <p>User:</p><input type="text" name="user" form="form" onChange={(event => this.onChangeUser(event))}/><br/>
-          <p>Password:</p><input type="text" name="password" form="form" onChange={(event => this.onChangePassword(event))}/><br/>
+          <div className="label">Host:</div><input type="text" className="field" name="host" form="form" onChange={(event => this.onChangeHost(event))}/><br/>
+          <div className="label">Port:</div><input type="text" name="port" form="form" onChange={(event => this.onChangePort(event))}/><br/>
+          <div className="label">User:</div><input type="text" name="user" form="form" onChange={(event => this.onChangeUser(event))}/><br/>
+          <div className="label">Password:</div><input type="text" name="password" form="form" onChange={(event => this.onChangePassword(event))}/><br/>
           <input type="submit" value="connect" form="form" onClick={()=>this.onSubmit()}/><br/>
         </div>
     );

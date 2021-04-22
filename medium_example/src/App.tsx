@@ -2,16 +2,7 @@ import React from 'react';
 
 import HighchartsTimeSeries from "./HighchartsTimeSeries";
 
-import {
-  SIAccessLevel,
-  SIConnectionState,
-  SIDeviceMessage,
-  SIGatewayCallback,
-  SIGatewayClient,
-  SIPropertyReadResult,
-  SIStatus,
-  SISubscriptionsResult
-} from "@marcocrettena/openstuder";
+import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayCallback, SIGatewayClient, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@marcocrettena/openstuder";
 import Connect from "./Connect";
 
 type Device={
@@ -52,40 +43,42 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
   }
 
   public render() {
-  if(this.state.connectionState===SIConnectionState.CONNECTED) {
-      let totalPower:number=0;
-      if(this.state.xTenderMC.value){
-          totalPower +=+ this.state.xTenderMC.value;
+      switch (this.state.connectionState) {
+          case SIConnectionState.DISCONNECTED:
+              return (
+                  <Connect onConnect={this.onConnect}/>
+              );
+
+          case SIConnectionState.CONNECTING:
+          case SIConnectionState.AUTHORIZING:
+              return (
+                  <div>
+                      Connecting...
+                  </div>
+              );
+
+          case SIConnectionState.CONNECTED:
+              let totalPower:number=0;
+              if(this.state.xTenderMC.value){
+                  totalPower +=+ this.state.xTenderMC.value;
+              }
+              if(this.state.varioTrackMC.value){
+                  totalPower +=+ this.state.varioTrackMC.value;
+              }
+              if(this.state.bsp.value){
+                  totalPower +=(+this.state.bsp.value)/1000;
+              }
+              let dataPoint:Data = {timestamp:Date.now(), value:totalPower};
+              return (
+                  <div className="App">
+                      <p>XTender power : {this.state.xTenderMC.value}</p>
+                      <p>BSP power : {this.state.bsp.value}</p>
+                      <p>VarioTrack power : {this.state.varioTrackMC.value}</p>
+                      <p>Total power : {totalPower}</p>
+                      <HighchartsTimeSeries dataPoint={dataPoint}/>
+                  </div>
+              );
       }
-      if(this.state.varioTrackMC.value){
-          totalPower +=+ this.state.varioTrackMC.value;
-      }
-      if(this.state.bsp.value){
-          totalPower +=(+this.state.bsp.value)/1000;
-      }
-      let dataPoint:Data = {timestamp:Date.now(), value:totalPower};
-      return (
-          <div className="App">
-              <p>XTender power : {this.state.xTenderMC.value}</p>
-              <p>BSP power : {this.state.bsp.value}</p>
-              <p>VarioTrack power : {this.state.varioTrackMC.value}</p>
-              <p>Total power : {totalPower}</p>
-              <HighchartsTimeSeries dataPoint={dataPoint}/>
-          </div>
-      );
-  }
-  else if(this.state.connectionState===SIConnectionState.CONNECTING) {
-      return (
-          <div>
-              Connecting...
-          </div>
-      );
-  }
-  else {
-      return (
-          <Connect onConnect={this.onConnect}/>
-      );
-  }
   }
 
   private onConnect = (host: string, port: number, username: string | undefined, password: string | undefined) => {

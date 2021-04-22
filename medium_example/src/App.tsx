@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from "./OpenStuder.svg";
 
 import HighchartsTimeSeries from "./HighchartsTimeSeries";
 
@@ -13,6 +12,7 @@ import {
   SIStatus,
   SISubscriptionsResult
 } from "@marcocrettena/openstuder";
+import Connect from "./Connect";
 
 type Device={
   powerId:string,
@@ -33,11 +33,7 @@ type AppState={
 
 class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
 
-  siGatewayClient:SIGatewayClient;
-  host:string;
-  port:number;
-  user:string;
-  password:string;
+  private siGatewayClient:SIGatewayClient;
 
   constructor(props:any) {
     super(props);
@@ -48,10 +44,6 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
       bsp:{powerId:"xcom.bat.7003",value:undefined},
     };
     this.siGatewayClient = new SIGatewayClient();
-    this.host="";
-    this.port=1987;
-    this.user="";
-    this.password="";
   }
 
   public componentDidMount() {
@@ -59,45 +51,19 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
     this.siGatewayClient.setCallback(this);
   }
 
-  public onChangeHost(event:React.ChangeEvent<HTMLInputElement>){
-    this.host=event.target.value;
-  }
-
-  public onChangePort(event:React.ChangeEvent<HTMLInputElement>){
-    if(+event.target.value) {
-      this.port = +event.target.value;
-    }
-    else{
-      this.port=1987;
-    }
-  }
-
-  public onChangeUser(event:React.ChangeEvent<HTMLInputElement>){
-    this.user=event.target.value;
-  }
-
-  public onChangePassword(event:React.ChangeEvent<HTMLInputElement>){
-    this.password=event.target.value;
-  }
-
-  public onSubmit(){
-    //Try to connect with the server
-    this.siGatewayClient.connect(this.host,this.port, this.user, this.password);
-  }
-
-  public renderConnected(){
-    //Display the values and the read button when we are connected
-    let totalPower:number=0;
-    if(this.state.xTenderMC.value){
-      totalPower +=+ this.state.xTenderMC.value;
-    }
-    if(this.state.varioTrackMC.value){
-      totalPower +=+ this.state.varioTrackMC.value;
-    }
-    if(this.state.bsp.value){
-      totalPower +=(+this.state.bsp.value)/1000;
-    }
-    let dataPoint:Data = {timestamp:Date.now(), value:totalPower};
+  public render() {
+  if(this.state.connectionState===SIConnectionState.CONNECTED) {
+      let totalPower:number=0;
+      if(this.state.xTenderMC.value){
+          totalPower +=+ this.state.xTenderMC.value;
+      }
+      if(this.state.varioTrackMC.value){
+          totalPower +=+ this.state.varioTrackMC.value;
+      }
+      if(this.state.bsp.value){
+          totalPower +=(+this.state.bsp.value)/1000;
+      }
+      let dataPoint:Data = {timestamp:Date.now(), value:totalPower};
       return (
           <div className="App">
               <p>XTender power : {this.state.xTenderMC.value}</p>
@@ -108,50 +74,25 @@ class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
           </div>
       );
   }
-  public renderConnecting(){
-    //Display that the client tries to connect
-    return(
-        <div className="App">
-            <p>
-              Connecting...
-            </p>
-        </div>
-    );
-  }
-
-  public renderDisconnected(){
-    return(
-        <div className="App">
-          <div className="label">Host:</div><input type="text" className="field" name="host" form="form" onChange={(event => this.onChangeHost(event))}/><br/>
-          <div className="label">Port:</div><input type="text" name="port" form="form" onChange={(event => this.onChangePort(event))}/><br/>
-          <div className="label">User:</div><input type="text" name="user" form="form" onChange={(event => this.onChangeUser(event))}/><br/>
-          <div className="label">Password:</div><input type="text" name="password" form="form" onChange={(event => this.onChangePassword(event))}/><br/>
-          <input type="submit" value="connect" form="form" onClick={()=>this.onSubmit()}/><br/>
-        </div>
-    );
-  }
-
-  public render() {
-  if(this.state.connectionState===SIConnectionState.CONNECTED) {
-    return(
-        <div>
-          {this.renderConnected()}
-        </div>
-    );
-  }
   else if(this.state.connectionState===SIConnectionState.CONNECTING) {
-    return(
-        <div>
-          {this.renderConnecting()}
-        </div>
-    );
+      return (
+          <div>
+              Connecting...
+          </div>
+      );
   }
   else {
-    return (
-        <div>
-          {this.renderDisconnected()}
-        </div>);
+      return (
+          <Connect onConnect={this.onConnect}/>
+      );
+  }
+  }
+
+  private onConnect = (host: string, port: number, username: string | undefined, password: string | undefined) => {
+    if (!host.startsWith('ws://')) {
+      host = 'ws://' + host;
     }
+    this.siGatewayClient.connect(host, port, username, password);
   }
 
   onPropertyRead(status: SIStatus, propertyId: string, value?: string): void {

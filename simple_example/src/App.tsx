@@ -1,5 +1,4 @@
 import React from 'react';
-import logo from "./OpenStuder.svg";
 import refresh from "./refresh.svg";
 
 import {
@@ -68,10 +67,6 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
         if (this.state.connectionState === SIConnectionState.CONNECTED) {
             return (
                 <div className="App">
-                    <h1 className="Title">
-                        <div><img src={logo} alt="" className="App-logo"/>
-                        </div>
-                    </h1>
                     <div className="property-list">
                         {
                             this.state.properties.map(property =>
@@ -93,15 +88,9 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
         else {
             return (
                 <div className="App">
-                    <header className="App-header">
-                        <h1 className="Title">
-                            <div><img src={logo} alt="" className="App-logo"/>
-                            </div>
-                        </h1>
-                        <p>
-                            Connecting...
-                        </p>
-                    </header>
+                    <h1>
+                        Connecting...
+                    </h1>
                 </div>
             );
         }

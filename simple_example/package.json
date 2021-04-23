@@ -21,7 +21,7 @@
       {
         "name": "Battery power",
         "id": "demo.bat.7003",
-        "unit": "kW"
+        "unit": "W"
       }
     ]
   },

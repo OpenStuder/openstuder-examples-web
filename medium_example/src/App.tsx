@@ -156,6 +156,7 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
     onPropertiesSubscribed(statuses: SISubscriptionsResult[]) {}
     onPropertyUnsubscribed(status: SIStatus, propertyId: string): void {}
     onPropertiesUnsubscribed(statuses: SISubscriptionsResult[]) {}
+    onPropertiesFound(status: SIStatus, id: string, count: number, properties: string[]): void {}
 }
 
 export default App;

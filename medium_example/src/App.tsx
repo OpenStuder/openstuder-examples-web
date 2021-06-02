@@ -1,6 +1,6 @@
 import React, {RefObject} from 'react';
 import HighchartsTimeSeries from "./HighchartsTimeSeries";
-import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayCallback, SIGatewayClient, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@marcocrettena/openstuder";
+import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayClientCallbacks, SIGatewayClient, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@openstuder/openstuder";
 import Connect from "./Connect";
 
 class Device {
@@ -31,7 +31,7 @@ class AppState {
     public powerSum: number;
 }
 
-class App extends React.Component<{}, AppState> implements SIGatewayCallback {
+class App extends React.Component<{}, AppState> implements SIGatewayClientCallbacks {
 
     private siGatewayClient: SIGatewayClient;
     private readonly chart: RefObject<HighchartsTimeSeries>;
@@ -116,13 +116,12 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
 
     // SIGatewayCallback implementation.
 
-    onConnectionStateChanged(state: SIConnectionState): void {
-        this.setState({connectionState: state});
-    }
-
     onConnected(accessLevel: SIAccessLevel, gatewayVersion: string): void {
         this.siGatewayClient.subscribeToProperties(this.state.devices.map(device => device.powerId));
     }
+
+
+
 
     onPropertyUpdated(propertyId: string, value: any): void {
         const devices = this.state.devices;

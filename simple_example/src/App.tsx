@@ -96,8 +96,8 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
         this.siGatewayClient.readProperties(this.state.properties.map((it) => it.id));
     }
 
-    onConnectionStateChanged(state: SIConnectionState): void {
-        this.setState({connectionState: state});
+    onConnected(accessLevel: SIAccessLevel, gatewayVersion: string): void {
+        this.setState({connectionState: SIConnectionState.CONNECTED});
     }
 
     onPropertiesRead(results: SIPropertyReadResult[]) {
@@ -112,7 +112,6 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
     }
 
     onPropertyRead(status: SIStatus, propertyId: string, value?: string): void {}
-    onConnected(accessLevel: SIAccessLevel, gatewayVersion: string): void {}
     onDatalogPropertiesRead(status: SIStatus, properties: string[]): void {}
     onDatalogRead(status: SIStatus, propertyId: string, count: number, values: string): void {}
     onDescription(status: SIStatus, description: string, id?: string): void {}

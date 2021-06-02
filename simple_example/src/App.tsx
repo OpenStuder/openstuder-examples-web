@@ -1,7 +1,7 @@
 import React from 'react';
 import refresh from "./refresh.svg";
 
-import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayCallback, SIGatewayClient, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@marcocrettena/openstuder";
+import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayClient, SIGatewayClientCallbacks, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@openstuder/openstuder";
 
 // Retrieve the user's configuration in the package.json file
 const config = require('../package.json').config;
@@ -25,7 +25,7 @@ class AppState {
     public properties = Array<Property>();
 }
 
-class App extends React.Component<{}, AppState> implements SIGatewayCallback {
+class App extends React.Component<{}, AppState> implements SIGatewayClientCallbacks {
 
     private siGatewayClient: SIGatewayClient;
 

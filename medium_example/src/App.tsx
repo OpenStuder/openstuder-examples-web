@@ -117,11 +117,9 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
     // SIGatewayCallback implementation.
 
     onConnected(accessLevel: SIAccessLevel, gatewayVersion: string): void {
+        this.setState({connectionState:SIConnectionState.CONNECTED});
         this.siGatewayClient.subscribeToProperties(this.state.devices.map(device => device.powerId));
     }
-
-
-
 
     onPropertyUpdated(propertyId: string, value: any): void {
         const devices = this.state.devices;
@@ -140,6 +138,10 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
         }
     }
 
+    onDisconnected(): void {
+        this.setState({connectionState:SIConnectionState.DISCONNECTED});
+    }
+
     onPropertyRead(status: SIStatus, propertyId: string, value?: string): void {}
     onPropertiesRead(results: SIPropertyReadResult[]) {}
     onPropertyWritten(status: SIStatus, propertyId: string): void {}
@@ -147,7 +149,6 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
     onDatalogRead(status: SIStatus, propertyId: string, count: number, values: string): void {}
     onDescription(status: SIStatus, description: string, id?: string): void {}
     onDeviceMessage(message: SIDeviceMessage): void {}
-    onDisconnected(): void {}
     onEnumerated(status: SIStatus, deviceCount: number): void {}
     onError(reason: string): void {}
     onMessageRead(status: SIStatus, count: number, messages: SIDeviceMessage[]): void {}

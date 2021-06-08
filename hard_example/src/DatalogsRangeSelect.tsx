@@ -20,6 +20,11 @@ class DatalogsRangeSelectState {
 class DatalogsRangeSelect extends React.Component<DatalogsRangeSelectProperties, DatalogsRangeSelectState> {
     private rangeSelect: HTMLDivElement | null = null;
 
+    private fromDate: HTMLInputElement | null = null;
+    private fromTime: HTMLInputElement | null = null;
+    private toDate: HTMLInputElement | null = null;
+    private toTime: HTMLInputElement | null = null;
+
     constructor(props: DatalogsRangeSelectProperties) {
         super(props);
 
@@ -36,7 +41,7 @@ class DatalogsRangeSelect extends React.Component<DatalogsRangeSelectProperties,
     public render() {
         return (
             <div className="time-range">
-                <div className="summary" onClick={() => this.setState({expanded: !this.state.expanded})}>
+                <div className="summary" onClick={() => this.toggleExpanded()}>
                     <TimeRangeIcon/>
                     <div>{this.state.from.getHours() == 0 && this.state.from.getMinutes() == 0 ? this.state.from.toLocaleDateString() : this.state.from.toLocaleDateString() + ' ' + this.state.from.toLocaleTimeString([], {
                         hour: '2-digit',
@@ -51,15 +56,15 @@ class DatalogsRangeSelect extends React.Component<DatalogsRangeSelectProperties,
                 <div ref={(it) => this.rangeSelect = it} className="select" style={{'display': this.state.expanded ? 'block' : 'none'}}>
                     <label>From:</label>
                     <div className="input">
-                        <input type="date" defaultValue={this.state.from.toISOString().split('T')[0]}/>
-                        <input type="time" defaultValue={this.state.from.toLocaleTimeString()}/>
+                        <input type="date" ref={(it) => this.fromDate = it} defaultValue={this.state.from.toISOString().split('T')[0]}/>
+                        <input type="time" ref={(it) => this.fromTime = it} defaultValue={this.state.from.toLocaleTimeString()}/>
                     </div>
                     <label>To:</label>
                     <div className="input">
-                        <input type="date" defaultValue={this.state.to.toISOString().split('T')[0]}/>
-                        <input type="time" defaultValue={this.state.to.toLocaleTimeString()}/>
+                        <input type="date" ref={(it) => this.toDate = it} defaultValue={this.state.to.toISOString().split('T')[0]}/>
+                        <input type="time" ref={(it) => this.toTime = it} defaultValue={this.state.to.toLocaleTimeString()}/>
                     </div>
-                    <button>Apply</button>
+                    <button onClick={() => this.onCustomRangeApplied()}>Apply</button>
                     <hr/>
                     <a onClick={() => this.onQuickRangeClicked('today')}>Today</a>
                     <a onClick={() => this.onQuickRangeClicked('yesterday')}>Yesterday</a>
@@ -74,6 +79,28 @@ class DatalogsRangeSelect extends React.Component<DatalogsRangeSelectProperties,
                 </div>
             </div>
         );
+    }
+
+    private toggleExpanded() {
+        const expanded = !this.state.expanded;
+        if (expanded) {
+            this.fromDate!.value = this.state.from.toISOString().split('T')[0];
+            this.fromTime!.value = this.state.from.toLocaleTimeString();
+            this.toDate!.value = this.state.to.toISOString().split('T')[0];
+            this.toTime!.value = this.state.to.toLocaleTimeString();
+        }
+        this.setState({expanded: expanded})
+    }
+
+    private onCustomRangeApplied() {
+        const from = new Date('' + this.fromDate?.value + 'T' + this.fromTime?.value);
+        const to = new Date('' + this.toDate?.value + 'T' + this.toTime?.value);
+        this.setState({
+            from: from,
+            to: to,
+            expanded: false
+        });
+        this.props.onRangeChanged(from, to);
     }
 
     private onQuickRangeClicked(range: string) {

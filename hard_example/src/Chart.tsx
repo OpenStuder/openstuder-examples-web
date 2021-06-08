@@ -55,8 +55,8 @@ class Chart extends React.Component<ChartProperties, {}> {
             },
             xAxis: {
                 type: 'datetime',
-                lineColor: 'rgb(var(--accent))',
-                tickColor: 'rgb(var(--accent))',
+                lineColor: 'rgb(var(--foreground))',
+                tickColor: 'rgb(var(--foreground))',
                 labels: {
                     style: {
                         color: 'rgb(var(--foreground))'
@@ -68,8 +68,8 @@ class Chart extends React.Component<ChartProperties, {}> {
                 min: 0,
                 minRange: 0.01,
                 lineWidth: 1,
-                lineColor: 'rgb(var(--accent))',
-                gridLineColor: 'rgba(var(--accent),0.25)',
+                lineColor: 'rgb(var(--foreground))',
+                gridLineColor: 'rgba(var(--foreground),0.25)',
                 labels: {
                     style: {
                         color: 'rgb(var(--foreground))'

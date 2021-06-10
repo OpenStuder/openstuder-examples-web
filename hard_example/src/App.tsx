@@ -1,385 +1,311 @@
 import React from 'react';
-import './App.css';
-import logo from "./OpenStuder.svg";
+import SIGatewayParentComponent from "./SIGatewayParentComponent";
+import {SIAccessLevel, SIDescriptionFlags, SIGatewayClient, SIStatus} from "@openstuder/openstuder";
+import Dashboard from "./Dashboard";
+import Login from './Login'
+import logo from "./resources/images/OpenStuder.svg";
+import {ReactComponent as DashboardIcon} from "./resources/icons/Dashboard.svg"
+import {ReactComponent as DataLogIcon} from "./resources/icons/Datalog.svg"
+import {ReactComponent as MessagesIcon} from "./resources/icons/Messages.svg"
+import {ReactComponent as PropertiesIcon} from "./resources/icons/Properties.svg"
+import {ReactComponent as LogoutIcon} from "./resources/icons/Logout.svg"
+import Messages from "./Messages";
+import Datalogs from "./Datalogs";
+import PropertiesEditor from "./PropertiesEditor";
 
-import {
-  SIAccessLevel,
-  SIConnectionState,
-  SIDescriptionFlags,
-  SIDeviceMessage,
-  SIGatewayCallback,
-  SIGatewayClient,
-  SIPropertyReadResult,
-  SIStatus,
-  SISubscriptionsResult
-} from "@marcocrettena/openstuder";
-
-import Devices, {Device, DeviceRender} from "./Devices";
-import DeviceMessagesRender from "./DeviceMessageRender";
-import SystemInfo from "./SystemInfo";
-
-//Retrieve the user's configuration in the package.json file
-const config = require("../package.json").config;
-const host:string=config.host;
-const port:number=config.port;
-const user:string=config.user;
-const password:string=config.password;
-
-enum VIEW{
-  SystemInfo,
-  EventsRecord,
-  Battery,
-  VarioTrack,
-  XTender
+enum View {
+    Dashboard,
+    Datalogs,
+    Messages,
+    Properties
 }
 
-type AppState={
-  devices:Devices,
-  currentView:VIEW,
-  messages:SIDeviceMessage[]
+interface AppProperties {
+    host: string
+    port: number
 }
 
-class App extends React.Component<{ }, AppState> implements SIGatewayCallback{
+type AppState = {
+    connected: boolean,
+    currentView: View,
+}
 
-  siGatewayClient:SIGatewayClient;
-  driverId:string;
-
-  constructor(props:any) {
-    super(props);
-    this.siGatewayClient = new SIGatewayClient();
-    this.driverId="";
-    this.state={
-      currentView:VIEW.SystemInfo,
-      devices: new Devices(),
-      messages:[]
+class App extends SIGatewayParentComponent<AppProperties, AppState> {
+    static defaultProps = {
+        host: window.location.hostname,
+        port: 1987,
+        user: null,
+        password: null
     };
-  }
 
-  public componentDidMount() {
-    //Set the callback that the SIGatewayClient will call
-    this.siGatewayClient.setCallback(this);
-    //Try to connect with the server
-    this.siGatewayClient.connect(host,port, user, password);
-  }
+    private readonly client: SIGatewayClient;
+    private description: any | undefined = undefined;
 
-  public onClick(id:string){
-    this.siGatewayClient.readProperty(this.driverId+"."+id);
-  }
-
-  public onSubmitWrittenTask(id:string, value:string){
-    this.siGatewayClient.writeProperty(this.driverId+"."+id);
-  }
-
-  public onSubmitReadMessagesTask(dateFrom:Date|undefined,dateTo:Date|undefined){
-    this.siGatewayClient.readMessages(dateFrom,dateTo);
-  }
-
-  public onSubscribeTask(id:string, subscribing:boolean){
-    if(subscribing){
-      this.siGatewayClient.subscribeToProperty(this.driverId+"."+id);
+    private dashboard = React.createRef<Dashboard>();
+    private datalogs = React.createRef<Datalogs>();
+    private messages = React.createRef<Messages>();
+    private propertiesEditor = React.createRef<PropertiesEditor>();
+    private login = React.createRef<Login>();
+    
+    constructor(props: AppProperties) {
+        super(props);
+        this.client = new SIGatewayClient();
+        this.state = {
+            connected: false,
+            currentView: View.Dashboard,
+        };
     }
-    else{
-      this.siGatewayClient.unsubscribeFromProperty(this.driverId+"."+id);
+
+    public componentDidMount() {
+        this.client.setCallback(this);
+        this.updateActiveChild();
     }
-  }
 
-  onPropertyRead(status: SIStatus, propertyId: string, value?: string): void {
-    let newDevices=this.state.devices;
-    let newProperty = newDevices.findPropertyFromString(propertyId);
-    if(newDevices.hasPropertyFromString(propertyId) && status===SIStatus.SUCCESS) {
-      // @ts-ignore function hasProperty has value true
-      newDevices.findPropertyFromString(propertyId).value=value;
-      this.setState({devices:newDevices});
+    public componentDidUpdate(prevProps: Readonly<AppProperties>, prevState: Readonly<AppState>, snapshot?: any) {
+        this.updateActiveChild();
     }
-  }
 
-  onConnectionStateChanged(state: SIConnectionState): void {
-    if(state===SIConnectionState.DISCONNECTED){
-      this.siGatewayClient.connect(host,port, user, password);
+    private updateActiveChild() {
+        if (this.login.current) this.setActiveChild(this.login.current);
+        else if (this.dashboard.current) this.setActiveChild(this.dashboard.current);
+        else if (this.datalogs.current) this.setActiveChild(this.datalogs.current);
+        else if (this.messages.current) this.setActiveChild(this.messages.current);
+        else if (this.propertiesEditor.current) this.setActiveChild(this.propertiesEditor.current);
     }
-  }
 
-
-  onConnected(accessLevel: SIAccessLevel, gatewayVersion: string): void {
-    let flags:SIDescriptionFlags[]=[SIDescriptionFlags.INCLUDE_DEVICE_INFORMATION,
-      SIDescriptionFlags.INCLUDE_PROPERTY_INFORMATION,
-      SIDescriptionFlags.INCLUDE_DRIVER_INFORMATION,SIDescriptionFlags.INCLUDE_ACCESS_INFORMATION]
-    this.siGatewayClient.describe(undefined,undefined,undefined,flags);
-  }
-
-  onDatalogPropertiesRead(status: SIStatus, properties: string[]):void {
-  }
-
-  onDatalogRead(status: SIStatus, propertyId: string, count: number, values: string): void {
-  }
-
-  onDescription(status: SIStatus, description: string, id?: string): void {
-    let newDevices:Devices=new Devices(Devices.jsonToDevices(description));
-    this.setState({devices:newDevices});
-    let pJSON = JSON.parse(description);
-    this.driverId = pJSON.instances[0].id;
-    let powerProperties:string[]=[this.driverId+".vts.11004",this.driverId+".xts.3137",this.driverId+".bat.7002",this.driverId+".bat.7003"];
-    this.siGatewayClient.subscribeToProperties(powerProperties);
-  }
-
-  onDeviceMessage(message: SIDeviceMessage): void {
-    let messages = this.state.messages;
-    messages.push(message);
-    this.setState({messages:messages});
-  }
-
-  onDisconnected(): void {
-  }
-
-  onEnumerated(status: SIStatus, deviceCount: number): void {
-  }
-
-  onError(reason: string): void {
-  }
-
-  onMessageRead(status: SIStatus, count: number, messages: SIDeviceMessage[]): void {
-    if(status===SIStatus.SUCCESS){
-      let newMessages:SIDeviceMessage[]=this.state.messages;
-      messages.map(message=>{
-        newMessages.push(message);
-      });
-      this.setState({messages:newMessages});
+    public render() {
+        if (this.state.connected) {
+            return (
+                <div className="App">
+                        <div className="sidenav">
+                            <img className="logo" src={logo} alt="Logo"/>
+                            <a
+                                className={this.state.currentView === View.Dashboard ? "active" : ""}
+                                href="#"
+                                onClick={() => this.changeView(View.Dashboard)}>
+                                <DashboardIcon/>
+                                <br/>Dashboard
+                            </a>
+                            <a
+                                className={this.state.currentView === View.Datalogs ? "active" : ""}
+                                href="#"
+                                onClick={() => this.changeView(View.Datalogs)}>
+                                <DataLogIcon/>
+                                <br/>Datalogs
+                            </a>
+                            <a
+                                className={this.state.currentView === View.Messages ? "active" : ""}
+                                href="#"
+                                onClick={() => this.changeView(View.Messages)}>
+                                <MessagesIcon/><br/>Messages
+                            </a>
+                            <a
+                                className={this.state.currentView === View.Properties ? "active" : ""}
+                                href="#"
+                                onClick={() => this.changeView(View.Properties)}>
+                                <PropertiesIcon/>
+                                <br/>Properties
+                            </a>
+                            <a
+                                href="#"
+                                onClick={() => this.client.disconnect()}>
+                                <LogoutIcon/>
+                                <br/>Logout
+                            </a>
+                        </div>
+                    <div className="content">
+                        {this.renderContent()}
+                    </div>
+                </div>
+            );
+        } else {
+            return (
+                <Login ref={this.login} host={this.props.host} port={this.props.port} client={this.client}/>
+            );
+        }
     }
-  }
 
-  public changeView(newView:VIEW){
-    this.setState({currentView:newView});
-  }
-
-  onPropertySubscribed(status: SIStatus, propertyId: string): void {
-    let newDevices=this.state.devices;
-    let newProperty = newDevices.findPropertyFromString(propertyId);
-    if(newDevices.hasPropertyFromString(propertyId) && status===SIStatus.SUCCESS) {
-      // @ts-ignore function hasProperty has value true
-      newDevices.findPropertyFromString(propertyId).subscribed=true;
-      this.setState({devices:newDevices});
+    private renderContent() {
+        switch (this.state.currentView) {
+            case View.Dashboard:
+                return (
+                    <Dashboard ref={this.dashboard} client={this.client}/>
+                );
+            case View.Datalogs:
+                return (
+                    <Datalogs ref={this.datalogs} client={this.client} description={this.description}/>
+                );
+            case View.Messages:
+                return (
+                    <Messages ref={this.messages} client={this.client}/>
+                );
+            case View.Properties:
+                return (
+                    <PropertiesEditor ref={this.propertiesEditor} client={this.client} model={this.description}/>
+                );
+        }
     }
-  }
 
-  onPropertiesSubscribed(statuses: SISubscriptionsResult[]) {
-    let newDevices=this.state.devices;
-    statuses.map(status =>{
-      if(status.status===SIStatus.SUCCESS && newDevices.hasPropertyFromString(status.id)){
-        // @ts-ignore function hasProperty has value true
-        newDevices.findPropertyFromString(status.id).subscribed=true;
+    onConnected(accessLevel: SIAccessLevel, gatewayVersion: string) {
+        super.onConnected(accessLevel, gatewayVersion);
+        this.setState({
+            currentView: View.Dashboard,
+            connected: true
+        });
+        this.client.describe(undefined, undefined, undefined, [SIDescriptionFlags.INCLUDE_ACCESS_INFORMATION, SIDescriptionFlags.INCLUDE_DEVICE_INFORMATION, SIDescriptionFlags.INCLUDE_PROPERTY_INFORMATION])
+    }
+
+    onDisconnected() {
+        super.onDisconnected();
+        this.setState({
+            connected: false
+        });
+    }
+
+    onDescription(status: SIStatus, description: string, id?: string) {
+        if (status == SIStatus.SUCCESS) {
+            this.description = JSON.parse(description);
+        }
+    }
+
+    onError(reason: string): void {
+        super.onError(reason);
+        console.log(reason);
+    }
+
+    public changeView(newView: View) {
+        this.setState({currentView: newView});
+    }
+    
+    /*public renderConnected(){
+        return (
+            <div className="App">
+              {this.renderSidebar()}
+              <div className="content">{this.renderContent()}</div>
+            </div>
+        );
       }
-    });
-    this.setState({devices:newDevices});
-  }
 
-  onPropertyUnsubscribed(status: SIStatus, propertyId: string): void {
-    let newDevices=this.state.devices;
-    let newProperty = newDevices.findPropertyFromString(propertyId);
-    if(newDevices.hasPropertyFromString(propertyId) && status===SIStatus.SUCCESS) {
-      // @ts-ignore function hasProperty has value true
-      newDevices.findPropertyFromString(propertyId).subscribed=false;
-      this.setState({devices:newDevices});
-    }
-  }
-
-  onPropertiesUnsubscribed(statuses: SISubscriptionsResult[]) {
-    let newDevices=this.state.devices;
-    statuses.map(status =>{
-      if(status.status===SIStatus.SUCCESS && newDevices.hasPropertyFromString(status.id)){
-        // @ts-ignore function hasProperty has value true
-        newDevices.findPropertyFromString(status.id).subscribed=false;
-      }
-    });
-    this.setState({devices:newDevices});
-  }
-
-  onPropertyUpdated(propertyId: string, value: any): void {
-    let newDevices=this.state.devices;
-    let newProperty = newDevices.findPropertyFromString(propertyId);
-    if(newDevices.hasPropertyFromString(propertyId)) {
-      // @ts-ignore function hasProperty has value true
-      newDevices.findPropertyFromString(propertyId).value=value;
-      this.setState({devices:newDevices});
-    }
-  }
-
-  onPropertyWritten(status: SIStatus, propertyId: string): void {
-  }
-
-  onPropertiesRead(results: SIPropertyReadResult[]) {
-    let newDevices=this.state.devices;
-    results.map(result =>{
-      if(result.status===SIStatus.SUCCESS && newDevices.hasPropertyFromString(result.id)){
-        // @ts-ignore function hasProperty has value true
-        newDevices.findPropertyFromString(result.id).value=result.value;
-      }
-    });
-    this.setState({devices:newDevices});
-  }
-
-  public render() {
-    if(this.state.devices.devices[0]!==undefined){
-      return(this.renderConnected());
-    }
-    else{
-      return(this.renderConnecting());
-    }
-  }
-
-  public renderConnecting(){
-    return (
-        <div className="App">
-          <header className="App-header">
-            <h1 className="Title">
-              <div><img src={logo} alt="" className="App-logo"/><span className="marge">StuderNext</span>
+      public renderSidebar(){
+        let varioTrackMCSubLink;
+        let varioTrackVT65SubLink;
+        let xTenderXTSSubLink;
+        let xTenderMCSubLink;
+        this.state.devices.devices.map(device=>{
+          if(device.model.includes("VarioTrack VT-65")){
+            varioTrackVT65SubLink=<a className="subLink" href={"#"+device.model} onClick={()=>this.changeView(View.VarioTrack)}>-{device.model}</a>
+          }
+          if(device.model.includes("Xtender XTS")){
+            xTenderXTSSubLink=<a className="subLink" href={"#"+device.model} onClick={()=>this.changeView(View.XTender)}>-{device.model}</a>
+          }
+          if(device.model.includes("VarioTrack multicast")){
+            varioTrackMCSubLink=<a className="subLink" href={"#"+device.model} onClick={()=>this.changeView(View.VarioTrack)}>-{device.model}</a>
+          }
+          if(device.model.includes("Xtender multicast")){
+            xTenderMCSubLink=<a className="subLink" href={"#"+device.model} onClick={()=>this.changeView(View.XTender)}>-{device.model}</a>
+          }
+        });
+        return(
+            <div>
+              <div className="sidenav">
+                <img className="logo" src={logo}/>
+                <a className="active" href="#" onClick={()=>this.changeView(View.Dashboard)}><img src={dashboardIcon}/><br/>Dashboard</a>
+                <a href="#"><img src={datalogIcon}/><br/>Datalogs</a>
+                <a href="#" onClick={()=>this.changeView(View.Messages)}><img src={messagesIcon}/><br/>Messages</a>
+                <a href="#"><img src={remoteIcon}/><br/>Remote control</a>
+                <a href="#"><img src={propertiesIcon}/><br/>Properties</a>
               </div>
-            </h1>
-          </header>
-          <h2>
-            Connecting...
-          </h2>
-        </div>
-    );
-  }
-
-  public renderConnected(){
-    return (
-        <div className="App">
-          <header className="App-header">
-            <h1 className="Title">
-              <div><img src={logo} alt="" className="App-logo"/><span className="marge">StuderNext</span>
-              </div>
-            </h1>
-          </header>
-          {this.renderSidebar()}
-          <div className="content">{this.renderContent()}</div>
-        </div>
-    );
-  }
-
-  public renderSidebar(){
-    let varioTrackMCSubLink;
-    let varioTrackVT65SubLink;
-    let xTenderXTSSubLink;
-    let xTenderMCSubLink;
-    this.state.devices.devices.map(device=>{
-      if(device.model.includes("VarioTrack VT-65")){
-        varioTrackVT65SubLink=<a className="subLink" href={"#"+device.model} onClick={()=>this.changeView(VIEW.VarioTrack)}>-{device.model}</a>
-      }
-      if(device.model.includes("Xtender XTS")){
-        xTenderXTSSubLink=<a className="subLink" href={"#"+device.model} onClick={()=>this.changeView(VIEW.XTender)}>-{device.model}</a>
-      }
-      if(device.model.includes("VarioTrack multicast")){
-        varioTrackMCSubLink=<a className="subLink" href={"#"+device.model} onClick={()=>this.changeView(VIEW.VarioTrack)}>-{device.model}</a>
-      }
-      if(device.model.includes("Xtender multicast")){
-        xTenderMCSubLink=<a className="subLink" href={"#"+device.model} onClick={()=>this.changeView(VIEW.XTender)}>-{device.model}</a>
-      }
-    });
-    return(
-        <div>
-          <div className="sidenav">
-            <a href="#" onClick={()=>this.changeView(VIEW.SystemInfo)}>System info</a>
-            <a href="#" onClick={()=>this.changeView(VIEW.EventsRecord)}>Notification center</a>
-            <a href="#" onClick={()=>this.changeView(VIEW.Battery)}>Battery</a>
-            <a href="#" onClick={()=>this.changeView(VIEW.VarioTrack)}>VarioTrack</a>
-            {varioTrackVT65SubLink}
-            {varioTrackMCSubLink}
-            <a href="#" onClick={()=>this.changeView(VIEW.XTender)}>XTender</a>
-            {xTenderXTSSubLink}
-            {xTenderMCSubLink}
-          </div>
-        </div>
-    );
-  }
-
-  public renderContent(){
-    switch(this.state.currentView){
-      case VIEW.SystemInfo:
-        return(
-            <div>{this.renderSystemInfo()}</div>
+            </div>
         );
-      case VIEW.EventsRecord:
-        return(
-            <div>{this.renderEventsRecord()}</div>
-        );
-      case VIEW.Battery:
-        return(
-            <div>{this.renderBattery()}</div>
-        );
-      case VIEW.VarioTrack:
-        return(
-            <div>{this.renderVarioTrack()}</div>
-        );
-      case VIEW.XTender:
-        return(
-            <div>{this.renderXTender()}</div>
-        );
-    }
-  }
-
-  public renderSystemInfo(){
-    let batteryDevice = this.state.devices.findDevice("bat");
-    let varioTrackDevice = this.state.devices.findDevice("vts");
-    let xTenderDevice = this.state.devices.findDevice("xts");
-    return(
-        <SystemInfo  battery={batteryDevice} varioTrack={varioTrackDevice} xTender={xTenderDevice}/>
-    );
-  }
-
-  public renderEventsRecord(){
-    return(
-        <div>
-          <DeviceMessagesRender messages={this.state.messages} onSubmit={(dateFrom, dateTo) => this.onSubmitReadMessagesTask(dateFrom,dateTo)}/>
-        </div>
-    );
-  }
-
-  public renderBattery(){
-    let batteryDevice:Device|undefined;
-    this.state.devices.devices.map(device=>{
-      if(device.model==="BSP"){
-        batteryDevice=device;
       }
-    });
-    if(batteryDevice) {
-      return (
-          <DeviceRender device={batteryDevice} onClick={(id:string)=>this.onClick(id)} onSubmit={(id,value)=>this.onSubmitWrittenTask(id,value)}
-                        onSubscribeTask={(id,subscribing)=>this.onSubscribeTask(id,subscribing)}/>
-      );
-    }
-    else{
-      return(
-          <div>No BSP device found</div>
-      );
-    }
-  }
 
-  public renderVarioTrack(){
-    return(
-        <div>
-          {this.state.devices.devices.map(device=>{
-            if(device.model.includes("VarioTrack")){
-              return <DeviceRender device={device} onClick={(id:string)=>this.onClick(id)} onSubmit={()=>this.onSubmitWrittenTask}
-                                   onSubscribeTask={(id,subscribing)=>this.onSubscribeTask(id,subscribing)}/>
-            }
-          })}
-        </div>
-    );
-  }
+      public renderContent(){
+        switch(this.state.currentView){
+          case View.Dashboard:
+            return(
+                <div>{this.renderSystemInfo()}</div>
+            );
+          case View.Messages:
+            return(
+                <div>{this.renderEventsRecord()}</div>
+            );
+          case View.Battery:
+            return(
+                <div>{this.renderBattery()}</div>
+            );
+          case View.VarioTrack:
+            return(
+                <div>{this.renderVarioTrack()}</div>
+            );
+          case View.XTender:
+            return(
+                <div>{this.renderXTender()}</div>
+            );
+        }
+      }
 
-  public renderXTender(){
-    return(
-        <div>
-          {this.state.devices.devices.map(device=>{
-            if(device.model.includes("Xtender")){
-              return <DeviceRender device={device} onClick={(id:string)=>this.onClick(id)} onSubmit={()=>this.onSubmitWrittenTask}
-                                   onSubscribeTask={(id,subscribing)=>this.onSubscribeTask(id,subscribing)}/>
-            }
-          })}
-        </div>
-    );
-  }
+      public renderSystemInfo(){
+        let batteryDevice = this.state.devices.findDevice("bat");
+        let varioTrackDevice = this.state.devices.findDevice("vts");
+        let xTenderDevice = this.state.devices.findDevice("xts");
+        return(
+            <SystemInfo  battery={batteryDevice} varioTrack={varioTrackDevice} xTender={xTenderDevice}/>
+        );
+      }
+
+      public renderEventsRecord(){
+        return(
+            <div>
+              <DeviceMessagesRender messages={this.state.messages} onSubmit={(dateFrom, dateTo) => this.onSubmitReadMessagesTask(dateFrom,dateTo)}/>
+            </div>
+        );
+      }
+
+      public renderBattery(){
+        let batteryDevice:Device|undefined;
+        this.state.devices.devices.map(device=>{
+          if(device.model==="BSP"){
+            batteryDevice=device;
+          }
+        });
+        if(batteryDevice) {
+          return (
+              <DeviceRender device={batteryDevice} onClick={(id:string)=>this.onClick(id)} onSubmit={(id,value)=>this.onSubmitWrittenTask(id,value)}
+                            onSubscribeTask={(id,subscribing)=>this.onSubscribeTask(id,subscribing)}/>
+          );
+        }
+        else{
+          return(
+              <div>No BSP device found</div>
+          );
+        }
+      }
+
+      public renderVarioTrack(){
+        return(
+            <div>
+              {this.state.devices.devices.map(device=>{
+                if(device.model.includes("VarioTrack")){
+                  return <DeviceRender device={device} onClick={(id:string)=>this.onClick(id)} onSubmit={()=>this.onSubmitWrittenTask}
+                                       onSubscribeTask={(id,subscribing)=>this.onSubscribeTask(id,subscribing)}/>
+                }
+              })}
+            </div>
+        );
+      }
+
+      public renderXTender(){
+        return(
+            <div>
+              {this.state.devices.devices.map(device=>{
+                if(device.model.includes("Xtender")){
+                  return <DeviceRender device={device} onClick={(id:string)=>this.onClick(id)} onSubmit={()=>this.onSubmitWrittenTask}
+                                       onSubscribeTask={(id,subscribing)=>this.onSubscribeTask(id,subscribing)}/>
+                }
+              })}
+            </div>
+        );
+      }*/
 }
 
 export default App;

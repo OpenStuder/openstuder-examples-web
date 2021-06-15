@@ -186,12 +186,16 @@ class PropertiesEditor extends SIGatewayComponent<PropertyEditorProperties, {}> 
                 <header>
                     <span className="id">{device.id}</span>
                     <span className="model">{device.model}</span>
+                    <div className="collapse" onClick={(event) => this.toggleCollapse(event.target as HTMLDivElement, document.getElementById(id + '-table')! as HTMLTableElement)}>-</div>
                 </header>
-                <table>
+                <table id={id + '-table'}>
                     <tbody>
                         {device.properties.map((it: any) => this.renderProperty(it, deviceAccessId, device.id))}
                     </tbody>
                 </table>
+                <header>
+                    <span>&nbsp;</span>
+                </header>
             </div>
         )
     }
@@ -392,6 +396,12 @@ class PropertiesEditor extends SIGatewayComponent<PropertyEditorProperties, {}> 
             alert('unknown error');
             this.propertyToWrite = null;
         }
+    }
+
+    private toggleCollapse(control: HTMLDivElement, target: HTMLTableElement) {
+        const collapse = target.style.display == 'table';
+        target.style.setProperty('display', collapse ? 'none' : 'table');
+        control.innerText = collapse ? '+' : '-';
     }
 }
 

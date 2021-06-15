@@ -761,13 +761,14 @@ div.property-editor div.device-access header span.driver {
 
 div.property-editor div.device {
     max-width: 1200px;
-    margin: 16px auto;
+    margin: 48px auto;
     border: 1px solid rgb(var(--accent));
     border-radius: 16px;
     overflow: hidden;
 }
 
 div.property-editor div.device header {
+    position: relative;
     margin: 0;
     padding: 4px;
     background-color: rgb(var(--accent));
@@ -782,6 +783,19 @@ div.property-editor div.device header span.model {
     margin-left: 1em;
     font-style: italic;
     color: rgb(var(--background));
+}
+
+div.property-editor div.device header div.collapse {
+    position: absolute;
+    right: 8px;
+    top: 5px;
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    background-color: var(--selected-overlay);
+    border-radius: 12px;
 }
 
 div.property-editor table {

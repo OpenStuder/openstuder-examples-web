@@ -2,14 +2,8 @@
   "name": "hard_example",
   "version": "0.1.0",
   "private": true,
-  "config": {
-    "host": "ws://153.109.24.113",
-    "port": 1987,
-    "user": "basic",
-    "password": "basic"
-  },
   "dependencies": {
-    "@marcocrettena/openstuder": "^0.2.0",
+    "@openstuder/openstuder": "^0.3.3",
     "@testing-library/jest-dom": "^5.11.10",
     "@testing-library/react": "^11.2.6",
     "@testing-library/user-event": "^12.8.3",
@@ -17,6 +11,7 @@
     "@types/node": "^12.20.7",
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.3",
+    "highcharts": "^9.1.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-scripts": "4.0.3",
@@ -45,5 +40,6 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  }
+  },
+  "devDependencies": {}
 }

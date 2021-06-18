@@ -50,3 +50,12 @@ To run the example do:
 	# cd openstuder-examples-web/webui
 	# npm install
 	# npm start
+	
+The application tries to connect to localhost, should you need to connect to another host, you need to modify the file **src/index.tsx**:
+
+	ReactDOM.render(
+		<React.StrictMode>
+		<App host="CUSTOM_HOST"/>
+		</React.StrictMode>,
+		document.getElementById('root')
+	);

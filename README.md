@@ -40,15 +40,13 @@ All the code is in the file **medium_example/src/App.tsx**, to run the example d
 	# npm install
 	# npm start
 	
-## hard-example
+## Difficult example - WebUI
 
-This example proposes a way to register and display all properties of a Studer system and provide for each property a "read" button and an input to write the properties.
-It provides too a schematic with the main information of the system and a record of all devices messages.
-You will need to edit the package.json file at the root of the project, it contains the values of the host, port, user and password in the "config" object.
+WebUI to connect to a openstuder gateway including a dashboard, datalog display, messages list and property editor.
 
-All the code is in the file **hard_example/src/**, to run the example do:
+To run the example do:
 
-	# git clone https://github.com/OpenStuder/openstuder-examples-web.git
-	# cd openstuder-examples-web/simple_example
+	# git clone https://github.com/OpenStuder/openstuder-examples-web.git --recursive
+	# cd openstuder-examples-web/webui
 	# npm install
 	# npm start

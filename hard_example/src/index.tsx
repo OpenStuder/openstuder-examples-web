@@ -5,7 +5,7 @@ import App from './App';
 
 ReactDOM.render(
     <React.StrictMode>
-        <App host="192.168.1.61"/>
+        <App/>
     </React.StrictMode>,
     document.getElementById('root')
 );

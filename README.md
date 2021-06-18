@@ -1,6 +1,6 @@
-# Typescript examples for OpenStuder client
+# Typescript examples for openstuder client
 
-The examples have been tested on **Windows 10**.
+The examples have been tested on **Windows 10**, **macOS 11** and **Ubuntu Linux 20.04**.
 
 ## Requirements
 
@@ -8,41 +8,45 @@ The examples have been tested on **Windows 10**.
 
 You need **git** to clone the projects to your local machine.
 
-	# https://git-scm.com/download/win
+	# https://git-scm.com/download
 
 ### Node.js
 
-The examples can be used by the JavaScript runtime **Node.js**.
+The package manager of **Node.js**, **npm** is used to resolve the dependencies and build and run the application.
 
 	# https://nodejs.org/
 	
-## simple-example
+## Minimal example - read_properties
 
-This example consists on clicking a button to read some properties of the Studer gateway. Starting with this example should permit the understanding of the OpenStuder Web Client.
-You will need to edit the `package.json` file at the root of the project, it contains the values of the `host`, `port`, `user` and `password`  in the `config` object. Additionally 
-you can configure the properties that are displayed on the page by modifying the `properties` array in `config`.
+This example offers a button to read some properties from a openstuder gateway. 
 
-All the code is in the file **simple_example/src/App.tsx**, to run the example do:
+Starting with this example simplifies the understanding of the basic functionality of the openstuder client.
+You will need to edit the `package.json` file at the root of the project, it contains the configuration values `host`, `port`, `user` and `password` inside the `config` object. 
+Additionally you can configure the properties that are displayed on the page by modifying the `properties` array in `config`.
+
+To run the example do:
 
 	# git clone https://github.com/OpenStuder/openstuder-examples-web.git
-	# cd openstuder-examples-web/simple_example
+	# cd openstuder-examples-web/read_properties
 	# npm install
 	# npm start
 
-## medium-example
+## Intermediate example - subscribe
 
-This application subscribes to some properties, these properties are added together and plot into a chart.
+This application subscribes to properties in order to get notified about new values, these properties are processed and a realtime plot is displayed.
 
-All the code is in the file **medium_example/src/App.tsx**, to run the example do:
+To run the example do:
 
 	# git clone https://github.com/OpenStuder/openstuder-examples-web.git
-	# cd openstuder-examples-web/medium_example
+	# cd openstuder-examples-web/subscribe
 	# npm install
 	# npm start
 	
 ## Difficult example - WebUI
 
-WebUI to connect to a openstuder gateway including a dashboard, datalog display, messages list and property editor.
+WebUI to connect to a openstuder gateway including a dashboard, datalog display, messages list and property editor. 
+
+This is a complete example and shows most of the functionality of the client.
 
 To run the example do:
 

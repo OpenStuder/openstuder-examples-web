@@ -1,6 +1,6 @@
 import React, {RefObject} from 'react';
 import HighchartsTimeSeries from "./HighchartsTimeSeries";
-import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayCallback, SIGatewayClient, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@marcocrettena/openstuder";
+import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayClient, SIGatewayClientCallbacks, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@openstuder/openstuder";
 import Connect from "./Connect";
 
 class Device {
@@ -31,7 +31,7 @@ class AppState {
     public powerSum: number;
 }
 
-class App extends React.Component<{}, AppState> implements SIGatewayCallback {
+class App extends React.Component<{}, AppState> implements SIGatewayClientCallbacks {
 
     private siGatewayClient: SIGatewayClient;
     private readonly chart: RefObject<HighchartsTimeSeries>;
@@ -100,6 +100,8 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
     // Event handlers.
 
     private onConnect = (host: string, port: number, username: string | undefined, password: string | undefined) => {
+        if (this.siGatewayClient.getState() != SIConnectionState.DISCONNECTED) return;
+
         // If the host string is missing the URL scheme, add it.
         if (!host.startsWith('ws://')) {
             host = 'ws://' + host;
@@ -116,11 +118,8 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
 
     // SIGatewayCallback implementation.
 
-    onConnectionStateChanged(state: SIConnectionState): void {
-        this.setState({connectionState: state});
-    }
-
     onConnected(accessLevel: SIAccessLevel, gatewayVersion: string): void {
+        this.setState({connectionState:SIConnectionState.CONNECTED});
         this.siGatewayClient.subscribeToProperties(this.state.devices.map(device => device.powerId));
     }
 
@@ -141,6 +140,10 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
         }
     }
 
+    onDisconnected(): void {
+        this.setState({connectionState:SIConnectionState.DISCONNECTED});
+    }
+
     onPropertyRead(status: SIStatus, propertyId: string, value?: string): void {}
     onPropertiesRead(results: SIPropertyReadResult[]) {}
     onPropertyWritten(status: SIStatus, propertyId: string): void {}
@@ -148,9 +151,10 @@ class App extends React.Component<{}, AppState> implements SIGatewayCallback {
     onDatalogRead(status: SIStatus, propertyId: string, count: number, values: string): void {}
     onDescription(status: SIStatus, description: string, id?: string): void {}
     onDeviceMessage(message: SIDeviceMessage): void {}
-    onDisconnected(): void {}
     onEnumerated(status: SIStatus, deviceCount: number): void {}
-    onError(reason: string): void {}
+    onError(reason: string): void {
+        window.alert('error: ' + reason);
+    }
     onMessageRead(status: SIStatus, count: number, messages: SIDeviceMessage[]): void {}
     onPropertySubscribed(status: SIStatus, propertyId: string): void {}
     onPropertiesSubscribed(statuses: SISubscriptionsResult[]) {}

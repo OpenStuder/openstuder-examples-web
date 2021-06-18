@@ -1,6 +1,6 @@
 import React, {RefObject} from 'react';
 import HighchartsTimeSeries from "./HighchartsTimeSeries";
-import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayClientCallbacks, SIGatewayClient, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@openstuder/openstuder";
+import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayClient, SIGatewayClientCallbacks, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@openstuder/openstuder";
 import Connect from "./Connect";
 
 class Device {
@@ -100,6 +100,8 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
     // Event handlers.
 
     private onConnect = (host: string, port: number, username: string | undefined, password: string | undefined) => {
+        if (this.siGatewayClient.getState() != SIConnectionState.DISCONNECTED) return;
+
         // If the host string is missing the URL scheme, add it.
         if (!host.startsWith('ws://')) {
             host = 'ws://' + host;
@@ -150,7 +152,9 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
     onDescription(status: SIStatus, description: string, id?: string): void {}
     onDeviceMessage(message: SIDeviceMessage): void {}
     onEnumerated(status: SIStatus, deviceCount: number): void {}
-    onError(reason: string): void {}
+    onError(reason: string): void {
+        window.alert('error: ' + reason);
+    }
     onMessageRead(status: SIStatus, count: number, messages: SIDeviceMessage[]): void {}
     onPropertySubscribed(status: SIStatus, propertyId: string): void {}
     onPropertiesSubscribed(statuses: SISubscriptionsResult[]) {}

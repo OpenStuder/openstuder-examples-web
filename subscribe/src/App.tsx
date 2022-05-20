@@ -1,6 +1,16 @@
 import React, {RefObject} from 'react';
 import HighchartsTimeSeries from "./HighchartsTimeSeries";
-import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayClient, SIGatewayClientCallbacks, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@openstuder/openstuder";
+import {
+    SIAccessLevel,
+    SIConnectionState,
+    SIDeviceFunctions,
+    SIDeviceMessage,
+    SIGatewayClient,
+    SIGatewayClientCallbacks,
+    SIPropertyReadResult,
+    SIStatus,
+    SISubscriptionsResult
+} from "@openstuder/openstuder";
 import Connect from "./Connect";
 
 class Device {
@@ -160,7 +170,7 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
     onPropertiesSubscribed(statuses: SISubscriptionsResult[]) {}
     onPropertyUnsubscribed(status: SIStatus, propertyId: string): void {}
     onPropertiesUnsubscribed(statuses: SISubscriptionsResult[]) {}
-    onPropertiesFound(status: SIStatus, id: string, count: number, properties: string[]): void {}
+    onPropertiesFound(status: SIStatus, id: string, count: number, virtual: boolean, functions: Set<SIDeviceFunctions>, properties: string[]): void {}
 }
 
 export default App;

@@ -1,7 +1,7 @@
 import React from 'react';
 import refresh from "./refresh.svg";
 
-import {SIAccessLevel, SIConnectionState, SIDeviceMessage, SIGatewayClient, SIGatewayClientCallbacks, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@openstuder/openstuder";
+import {SIAccessLevel, SIConnectionState, SIDeviceFunctions, SIDeviceMessage, SIGatewayClient, SIGatewayClientCallbacks, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@openstuder/openstuder";
 
 // Retrieve the user's configuration in the package.json file
 const config = require('../package.json').config;
@@ -27,7 +27,7 @@ class AppState {
 
 class App extends React.Component<{}, AppState> implements SIGatewayClientCallbacks {
 
-    private siGatewayClient: SIGatewayClient;
+    private client: SIGatewayClient;
 
     constructor(props: any) {
         super(props);
@@ -38,16 +38,16 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
         for (let deviceConfig of config.properties) {
             this.state.properties.push(new Property(deviceConfig.name, deviceConfig.id, deviceConfig.unit))
         }
-        this.siGatewayClient = new SIGatewayClient();
+        this.client = new SIGatewayClient();
     }
 
     public componentDidMount() {
         // Set the callback that the SIGatewayClient will call
-        this.siGatewayClient.setCallback(this);
+        this.client.setCallback(this);
 
         // Try to connect with the server if the configuration owns a host value
         if (config.host !== undefined) {
-            this.siGatewayClient.connect(config.host, config.port, config.user, config.password);
+            this.client.connect(config.host, config.port, config.user, config.password);
         } else {
             // No host value
             throw new Error("No host found, check if \"package.json\" owns a \"config\" object with a \"host\" key");
@@ -93,7 +93,7 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
 
     private onReadButtonClicked = () => {
         // When button is pressed : read all properties
-        this.siGatewayClient.readProperties(this.state.properties.map((it) => it.id));
+        this.client.readProperties(this.state.properties.map((it) => it.id));
     }
 
     onConnected(accessLevel: SIAccessLevel, gatewayVersion: string): void {
@@ -128,7 +128,7 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
     onPropertiesUnsubscribed(statuses: SISubscriptionsResult[]) {}
     onPropertyUpdated(propertyId: string, value: any): void {}
     onPropertyWritten(status: SIStatus, propertyId: string): void {}
-    onPropertiesFound(status: SIStatus, id: string, count: number, properties: string[]): void {}
+    onPropertiesFound(status: SIStatus, id: string, count: number, virtual: boolean, functions: Set<SIDeviceFunctions>, properties: string[]): void {}
 }
 
 export default App;

@@ -22,7 +22,7 @@ This example offers a button to read some properties from an openstuder gateway.
 
 Starting with this example simplifies the understanding of the basic functionality of the openstuder WebSocket client.
 You will need to edit the `package.json` file at the root of the project, it contains the configuration values `host`, `port`, `user` and `password` inside the `config` object. 
-Additionally you can configure the properties that are displayed on the page by modifying the `properties` array in `config`.
+Additionally, you can configure the properties that are displayed on the page by modifying the `properties` array in `config`.
 
 To run the example do:
 

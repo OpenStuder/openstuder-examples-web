@@ -1,7 +1,18 @@
 import React from 'react';
 import refresh from "./refresh.svg";
 
-import {SIAccessLevel, SIConnectionState, SIDeviceFunctions, SIDeviceMessage, SIGatewayClient, SIGatewayClientCallbacks, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@openstuder/openstuder";
+import {
+    SIAccessLevel,
+    SIConnectionState,
+    SIDeviceFunctions,
+    SIDeviceMessage,
+    SIExtensionStatus,
+    SIGatewayClient,
+    SIGatewayClientCallbacks,
+    SIPropertyReadResult,
+    SIStatus,
+    SISubscriptionsResult
+} from "@openstuder/openstuder";
 
 // Retrieve the user's configuration in the package.json file
 const config = require('../package.json').config;
@@ -129,6 +140,7 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
     onPropertyUpdated(propertyId: string, value: any): void {}
     onPropertyWritten(status: SIStatus, propertyId: string): void {}
     onPropertiesFound(status: SIStatus, id: string, count: number, virtual: boolean, functions: Set<SIDeviceFunctions>, properties: string[]): void {}
+    onExtensionCalled(extension: string, command: string, status: SIExtensionStatus, parameters: Map<string, string>, body: string): void {}
 }
 
 export default App;

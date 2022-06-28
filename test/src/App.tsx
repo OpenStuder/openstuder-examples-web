@@ -1,6 +1,16 @@
 import React from 'react';
 
-import {SIAccessLevel, SIDeviceFunctions, SIDeviceMessage, SIGatewayClient, SIGatewayClientCallbacks, SIPropertyReadResult, SIStatus, SISubscriptionsResult} from "@openstuder/openstuder";
+import {
+    SIAccessLevel,
+    SIDeviceFunctions,
+    SIDeviceMessage,
+    SIExtensionStatus,
+    SIGatewayClient,
+    SIGatewayClientCallbacks,
+    SIPropertyReadResult,
+    SIStatus,
+    SISubscriptionsResult
+} from "@openstuder/openstuder";
 
 // Retrieve the user's configuration in the package.json file
 const config = require('../package.json').config;
@@ -290,6 +300,8 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
     onError(reason: string): void {
         this.updateTestCase(TestCaseStatus.FAILED);
     }
+
+    onExtensionCalled(extension: string, command: string, status: SIExtensionStatus, parameters: Map<string, string>, body: string): void {}
 }
 
 export default App;

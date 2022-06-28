@@ -4,7 +4,7 @@ import {
     SIAccessLevel,
     SIConnectionState,
     SIDeviceFunctions,
-    SIDeviceMessage,
+    SIDeviceMessage, SIExtensionStatus,
     SIGatewayClient,
     SIGatewayClientCallbacks,
     SIPropertyReadResult,
@@ -171,6 +171,7 @@ class App extends React.Component<{}, AppState> implements SIGatewayClientCallba
     onPropertyUnsubscribed(status: SIStatus, propertyId: string): void {}
     onPropertiesUnsubscribed(statuses: SISubscriptionsResult[]) {}
     onPropertiesFound(status: SIStatus, id: string, count: number, virtual: boolean, functions: Set<SIDeviceFunctions>, properties: string[]): void {}
+    onExtensionCalled(extension: string, command: string, status: SIExtensionStatus, parameters: Map<string, string>, body: string): void {}
 }
 
 export default App;

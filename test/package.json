@@ -3,13 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "config": {
-    "host": "ws://openstuder.lan",
+    "host": "ws://localhost",
     "port": 1987,
     "user": "expert",
     "password": "expert"
   },
   "dependencies": {
-    "@openstuder/openstuder": "0.3.6",
+    "@openstuder/openstuder": "0.4.0",
     "@testing-library/jest-dom": "^5.11.10",
     "@testing-library/react": "^11.2.6",
     "@testing-library/user-event": "^12.8.3",

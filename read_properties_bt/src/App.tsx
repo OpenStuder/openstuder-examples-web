@@ -1,7 +1,16 @@
 import React from 'react';
 import refresh from "./refresh.svg";
 
-import {SIAccessLevel, SIBluetoothGatewayClient, SIBluetoothGatewayClientCallbacks, SIConnectionState, SIDataLogEntry, SIDeviceMessage, SIStatus} from "@openstuder/openstuder";
+import {
+    SIAccessLevel,
+    SIBluetoothGatewayClient,
+    SIBluetoothGatewayClientCallbacks,
+    SIConnectionState,
+    SIDataLogEntry,
+    SIDeviceMessage,
+    SIExtensionStatus,
+    SIStatus
+} from "@openstuder/openstuder";
 
 // Retrieve the user's configuration in the package.json file
 const config = require('../package.json').config;
@@ -127,6 +136,7 @@ class App extends React.Component<{}, AppState> implements SIBluetoothGatewayCli
     onDatalogRead(status: SIStatus, propertyId: string, count: number, values: Array<SIDataLogEntry>): void {}
     onMessagesRead(status: SIStatus, count: number, messages: SIDeviceMessage[]): void {}
     onDeviceMessage(message: SIDeviceMessage): void {}
+    onExtensionCalled(extension: string, command: string, status: SIExtensionStatus, parameters: Array<any>): void {}
 }
 
 export default App;
